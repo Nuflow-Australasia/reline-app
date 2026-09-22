@@ -722,7 +722,7 @@ nav{
           <div class="ln shimmer" style="width:86%"></div>
           <div class="skel-note" id="commNote">
             Taking a while on this connection…
-            <br><button data-ext="https://community.nuflow.net/feed">Open in browser ↗</button>
+            <br><button data-ext="https://community.nuflow.net/c/community-feed">Open in browser ↗</button>
           </div>
         </div>
       </div>
@@ -1139,7 +1139,7 @@ function wireFrame(frame, skel, note, slowMs = 6000) {
 // Community tab. /c/<slug>?iframe=true is the confirmed chrome-free pattern —
 // /feed needs a logged-in member to resolve to anything, so without a session
 // it was falling back to the full site shell.
-const COMM_URL = 'https://community.nuflow.net/c/updates?iframe=true';
+const COMM_URL = 'https://community.nuflow.net/c/community-feed?iframe=true';
 let commLoaded = false;
 const commIO = wireFrame($('#commFrame'), $('#commSkel'), $('#commNote'));
 

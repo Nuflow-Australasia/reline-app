@@ -2,7 +2,7 @@
    Network-first: technicians always get the latest version when online,
    and the last-loaded copy of the app shell opens if they have no signal.
    Bump CACHE when you want to force-clear old copies. */
-const CACHE = 'nuflow-tech-v1';
+const CACHE = 'nuflow-tech-v3';
 const SHELL = [
   './',
   './index.html',
