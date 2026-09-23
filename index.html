@@ -1159,31 +1159,72 @@ function loadCommunity(url){
 }
 
 /* ---- Latest posts (Home) ----
-   Sample posts demonstrating the compact-feed pattern. In the native build,
-   this list is fed live by the Circle Headless Member API (posts from the
-   Updates space), and each row's `u` is that post's exact URL — so tapping
-   deep-links the Community tab straight to the selected post. */
-const POSTS = [
-  {t:'New tool live: Impreg UV curing parameters', s:'Updates', when:'2h ago', av:'NU', c:'var(--nuvline)', fresh:true,
-   u:'https://community.nuflow.net/c/updates?iframe=true'},
-  {t:'July toolbox talk: safe depths refresher', s:'Updates', when:'Yesterday', av:'NU', c:'var(--redline)',
-   u:'https://community.nuflow.net/c/updates?iframe=true'},
-  {t:'Job of the Month: Brisbane stormwater reline', s:'Updates', when:'2 days ago', av:'NU', c:'var(--nugreen)',
-   u:'https://community.nuflow.net/c/updates?iframe=true'},
-  {t:'Updated SDS pack now in Documents', s:'Updates', when:'4 days ago', av:'NU', c:'var(--blueliner)',
-   u:'https://community.nuflow.net/c/updates?iframe=true'},
-];
+   Live list read from posts.json, which a scheduled GitHub Action refreshes
+   from Circle every 30 minutes (see .github/workflows/deploy.yml). It holds
+   titles, dates and links only; tapping a row deep-links the Community tab
+   to that post, which still needs a community login to read. */
+const SPACE_STYLE = {
+  'updates':        { c:'var(--blueliner)', av:'📣' },
+  'community-feed': { c:'var(--nugreen)',   av:'🌏' },
+};
+let POSTS = [];
+
+const esc = t => String(t).replace(/[&<>"']/g, ch =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+
+function timeAgo(iso){
+  const mins = Math.max(0, Math.round((Date.now() - new Date(iso)) / 60000));
+  if (mins < 60)  return mins <= 1 ? 'Just now' : `${mins}m ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24)   return `${hrs}h ago`;
+  const days = Math.round(hrs / 24);
+  if (days === 1) return 'Yesterday';
+  if (days < 7)   return `${days} days ago`;
+  return new Date(iso).toLocaleDateString('en-AU', { day:'numeric', month:'short' });
+}
+
+async function loadPosts(){
+  try {
+    const res = await fetch('posts.json', { cache:'no-store' });
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    POSTS = (data.posts || []).map(p => {
+      const st = SPACE_STYLE[p.space_slug] || { c:'var(--nublue)', av:'NU' };
+      return {
+        t: p.title, s: p.space, when: timeAgo(p.published_at),
+        av: st.av, c: st.c,
+        fresh: (Date.now() - new Date(p.published_at)) < 48 * 3600e3,
+        u: p.url + (p.url.includes('?') ? '&' : '?') + 'iframe=true'
+      };
+    });
+  } catch (e) {
+    POSTS = [];
+  }
+}
 
 let postsRendered = false;
 function renderPosts(shimmer = true){
   const list = $('#postList');
   const paint = () => {
+    if (!POSTS.length){
+      list.innerHTML = `
+        <div class="post-row enter" style="--i:0" id="postsEmpty">
+          <div class="post-av" style="background:var(--nublue)">NU</div>
+          <div class="post-body">
+            <div class="post-title"><span class="tt">Latest updates unavailable</span></div>
+            <div class="post-meta">Tap to open the community</div>
+          </div>${chev}
+        </div>`;
+      $('#postsEmpty').addEventListener('click', () => { buzz(); loadCommunity(); showPage('community'); });
+      postsRendered = true;
+      return;
+    }
     list.innerHTML = POSTS.map((p,i) => `
       <div class="post-row enter" style="--i:${i}" data-post="${i}">
         <div class="post-av" style="background:${p.c}">${p.av}</div>
         <div class="post-body">
-          <div class="post-title">${p.fresh ? '<span class="post-new"></span>' : ''}<span class="tt">${p.t}</span></div>
-          <div class="post-meta">${p.s} · ${p.when}</div>
+          <div class="post-title">${p.fresh ? '<span class="post-new"></span>' : ''}<span class="tt">${esc(p.t)}</span></div>
+          <div class="post-meta">${esc(p.s)} · ${p.when}</div>
         </div>${chev}
       </div>`).join('');
     list.querySelectorAll('.post-row').forEach(el =>
@@ -1195,13 +1236,14 @@ function renderPosts(shimmer = true){
       }));
     postsRendered = true;
   };
-  if (!shimmer){ paint(); return; }
+  if (!shimmer){ loadPosts().then(paint); return; }
   list.innerHTML = Array.from({length:3}).map(() => `
     <div class="post-skel">
       <div class="sk-av shimmer"></div>
       <div style="flex:1"><div class="sk-ln shimmer" style="width:72%"></div><div class="sk-ln shimmer" style="width:34%;margin-top:7px;height:9px"></div></div>
     </div>`).join('');
-  setTimeout(paint, 550);
+  const minShimmer = new Promise(r => setTimeout(r, 450));
+  Promise.all([loadPosts(), minShimmer]).then(paint);
 }
 
 $('#postsRefresh').addEventListener('click', function(){
