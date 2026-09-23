@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: '*/30 * * * *'   # refresh community posts every 30 minutes
+    - cron: '*/30 * * * *'   # refresh community posts and tools every 30 minutes
   workflow_dispatch:          # adds a "Run workflow" button on the Actions tab
 
 permissions:
@@ -25,6 +25,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Latest field tools, straight from the nuflow-tools repo, so they can be saved for offline use
+      - uses: actions/checkout@v4
+        with:
+          repository: nuflow-australasia/nuflow-tools
+          path: tools-src
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -32,7 +38,10 @@ jobs:
       - name: Build site folder
         run: |
           mkdir _site
-          rsync -a --exclude '.git' --exclude '.github' --exclude 'scripts' --exclude '_site' ./ _site/
+          rsync -a --exclude '.git' --exclude '.github' --exclude 'scripts' --exclude '_site' --exclude 'tools-src' ./ _site/
+          mkdir -p _site/tools
+          cp tools-src/*.html _site/tools/
+          ls _site/tools
 
       - name: Fetch latest community posts
         env:
