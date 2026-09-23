@@ -1,4 +1,4 @@
-# Nuflow Technician App (web prototype)
+# Nuflow Reline App v1.0
 
 Live at: https://nuflow-australasia.github.io/reline-app/
 

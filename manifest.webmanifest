@@ -1,7 +1,7 @@
 {
-  "name": "Nuflow Technician",
-  "short_name": "Nuflow Tech",
-  "description": "Nuflow reline technician app — field tools, documents and community.",
+  "name": "Nuflow Reline App",
+  "short_name": "Nuflow Reline",
+  "description": "Nuflow Reline App — field tools, documents and community.",
   "id": "./",
   "start_url": "./",
   "scope": "./",
