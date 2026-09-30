@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0A113A">
+<title>Redline Calculator — Nuflow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   NUFLOW RELINE APP — shared tool theme (mirrors index.html)
+   ============================================================ */
+:root{
+  --ink:#060914; --nublue-dark:#0A113A; --nublue:#252D65;
+  --blueliner:#4DC8ED; --nugreen:#58A345; --nugrey:#ECEDED;
+  --pressureline:#F7941D; --redline:#F0534E; --nuvline:#893DFF;
+  --nupine:#0A6242; --htar:#802673; --nucoat:#C473AD; --sumoline:#727D84;
+
+  --surface-1:rgba(255,255,255,.045); --surface-2:rgba(255,255,255,.08);
+  --stroke:rgba(255,255,255,.09); --stroke-2:rgba(255,255,255,.16);
+  --text-hi:#F4F6F8; --text-mid:rgba(236,237,237,.72); --text-low:rgba(236,237,237,.45);
+
+  --ok:#8ed07c; --bad:#ff8a86; --warn:#FFB25B;
+
+  --display:'Montserrat',-apple-system,'Segoe UI',Roboto,sans-serif;
+  --body:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --r-lg:22px; --r-md:16px; --r-sm:12px;
+  --spring:cubic-bezier(.34,1.56,.64,1);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--ink)}
+body{
+  font-family:var(--body);color:var(--text-hi);min-height:100vh;
+  -webkit-font-smoothing:antialiased;background:var(--ink);
+  padding:16px 16px calc(32px + env(safe-area-inset-bottom,0px));
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(120% 50% at 85% -10%, rgba(77,200,237,.10), transparent 55%),
+    radial-gradient(110% 45% at 0% 105%, rgba(88,163,69,.07), transparent 55%),
+    linear-gradient(180deg, var(--nublue-dark) 0%, var(--ink) 60%);
+}
+.wrap{max-width:560px;margin:0 auto}
+.hidden{display:none!important}
+
+.stagger > *{opacity:0;transform:translateY(12px);animation:riseIn .5s var(--spring) forwards;animation-delay:calc(var(--i,0)*70ms)}
+@keyframes riseIn{to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.stagger > *,.result.visible{animation:none!important;opacity:1!important;transform:none!important}}
+
+/* HERO */
+.hero{
+  position:relative;overflow:hidden;border-radius:var(--r-lg);padding:22px 20px 20px;
+  background:
+    radial-gradient(120% 120% at 100% 0%, var(--tool-glow), transparent 50%),
+    radial-gradient(100% 100% at 0% 100%, rgba(77,200,237,.10), transparent 55%),
+    linear-gradient(160deg, var(--nublue) 0%, var(--nublue-dark) 58%, #080d29 100%);
+  border:1px solid var(--stroke-2);box-shadow:0 18px 44px rgba(0,0,0,.42);
+}
+.hero::after{
+  content:'';position:absolute;width:200px;height:200px;border-radius:50%;
+  background:radial-gradient(circle, var(--tool-glow), transparent 65%);
+  top:-90px;right:-50px;animation:drift 9s ease-in-out infinite alternate;pointer-events:none;
+}
+@keyframes drift{to{transform:translate(-26px,20px) scale(1.15)}}
+.hero-ic{
+  width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;
+  background:var(--tool);color:#06121c;margin-bottom:14px;box-shadow:0 8px 20px var(--tool-glow);
+}
+.eyebrow{font-family:var(--display);font-weight:700;font-size:10.5px;letter-spacing:.32em;color:var(--blueliner);text-transform:uppercase;margin-bottom:8px}
+.hero h1{font-family:var(--display);font-weight:900;font-size:27px;letter-spacing:-.8px;line-height:1.08}
+.hero p{margin-top:8px;font-size:13.5px;color:var(--text-mid);line-height:1.5;max-width:36ch}
+.flow-line{margin-top:16px;height:3px;border-radius:3px;width:64px;background:linear-gradient(90deg,var(--blueliner),var(--nugreen));box-shadow:0 0 12px rgba(77,200,237,.65)}
+
+/* SECTIONS + CARDS */
+.sect{display:flex;align-items:baseline;justify-content:space-between;margin:22px 2px 10px}
+.sect h2{font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:-.2px}
+.sect .hint{font-size:11.5px;color:var(--text-low);font-weight:600;letter-spacing:.03em}
+.card{border-radius:var(--r-lg);background:var(--surface-1);border:1px solid var(--stroke);box-shadow:0 14px 34px rgba(0,0,0,.35);overflow:hidden}
+.card-pad{padding:18px 16px}
+
+/* INPUTS */
+.field + .field{margin-top:16px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row2 .field + .field{margin-top:0}
+.row2 + .field,.field + .row2{margin-top:16px}
+.label{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.02em;color:var(--text-hi);margin-bottom:8px}
+.label small{font-family:var(--body);font-weight:600;font-size:11px;color:var(--text-low);letter-spacing:.02em;text-align:right}
+.label.dim{opacity:.4}
+.select{position:relative}
+.select::after{content:'';position:absolute;right:16px;top:50%;width:8px;height:8px;margin-top:-6px;border-right:2px solid var(--text-mid);border-bottom:2px solid var(--text-mid);transform:rotate(45deg);pointer-events:none}
+select,input[type=number]{
+  width:100%;appearance:none;-webkit-appearance:none;
+  font-family:var(--body);font-size:16px;font-weight:600;color:var(--text-hi);
+  background:rgba(255,255,255,.06);border:1px solid var(--stroke-2);border-radius:var(--r-sm);
+  padding:14px 42px 14px 14px;cursor:pointer;transition:border-color .2s,box-shadow .2s,opacity .2s;
+}
+input[type=number]{padding:14px;cursor:text;-moz-appearance:textfield}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input::placeholder{color:var(--text-low);font-weight:500}
+select option{background:#0b1024;color:var(--text-hi)}
+select:focus,input:focus{outline:none;border-color:var(--blueliner);box-shadow:0 0 0 3px rgba(77,200,237,.2)}
+select:disabled,input:disabled{opacity:.4;cursor:not-allowed}
+.unit-input{position:relative}
+.unit-input input{padding-right:46px}
+.unit-input span{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-family:var(--display);font-weight:700;font-size:12px;color:var(--text-low);pointer-events:none}
+.hint-line{font-size:11.5px;color:var(--text-low);margin-top:7px;line-height:1.45}
+.hint-line strong{color:var(--blueliner)}
+.hint-line.err{color:var(--bad)}
+input.err{border-color:rgba(240,83,78,.6);box-shadow:0 0 0 3px rgba(240,83,78,.15)}
+
+/* Chips */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{
+  font-family:var(--display);font-weight:800;font-size:13px;letter-spacing:-.2px;color:var(--text-mid);
+  background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:11px;
+  padding:10px 12px;cursor:pointer;min-width:52px;text-align:center;
+  transition:transform .15s ease,background .2s,color .2s,border-color .2s,box-shadow .2s;
+}
+.chip:active{transform:scale(.93)}
+.chip.on{color:#06121c;background:var(--blueliner);border-color:var(--blueliner);box-shadow:0 6px 16px rgba(77,200,237,.35)}
+.chip:disabled{opacity:.35;cursor:not-allowed}
+
+/* Segmented */
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:4px;background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:14px}
+.seg button{font-family:var(--display);font-weight:700;font-size:12px;line-height:1.2;color:var(--text-mid);background:transparent;border:0;border-radius:10px;padding:10px 4px;cursor:pointer;transition:background .2s,color .2s}
+.seg button small{display:block;font-family:var(--body);font-size:10.5px;font-weight:600;opacity:.7;margin-top:2px}
+.seg button.on{background:var(--surface-2);color:var(--blueliner);box-shadow:inset 0 0 0 1px var(--stroke-2)}
+.seg button:disabled{opacity:.35;cursor:not-allowed}
+
+/* Toggle */
+.toggle-row{display:flex;align-items:center;gap:12px;margin-top:16px;padding:12px 13px;border-radius:var(--r-sm);background:rgba(255,255,255,.04);border:1px solid var(--stroke);cursor:pointer}
+.toggle-row b{flex:1;font-family:var(--display);font-weight:700;font-size:13px}
+.toggle-row b small{display:block;font-family:var(--body);font-weight:500;font-size:11.5px;color:var(--text-low);margin-top:2px}
+.toggle{position:relative;flex:none;width:46px;height:28px}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle .knob{position:absolute;inset:0;border-radius:20px;background:rgba(255,255,255,.14);transition:background .2s}
+.toggle .knob::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);transition:transform .25s var(--spring)}
+.toggle input:checked + .knob{background:var(--nugreen)}
+.toggle input:checked + .knob::after{transform:translateX(18px)}
+
+/* RESULT */
+.result{
+  display:none;margin-top:14px;position:relative;overflow:hidden;border-radius:var(--r-lg);padding:18px 16px 16px;
+  background:
+    radial-gradient(120% 120% at 100% 0%, rgba(77,200,237,.16), transparent 50%),
+    radial-gradient(100% 100% at 0% 100%, rgba(88,163,69,.12), transparent 55%),
+    linear-gradient(160deg, var(--nublue) 0%, var(--nublue-dark) 60%, #080d29 100%);
+  border:1px solid var(--stroke-2);box-shadow:0 18px 44px rgba(0,0,0,.42);
+}
+.result.visible{display:block;animation:riseIn .45s var(--spring) both;opacity:0;transform:translateY(12px)}
+.result-desc{font-family:var(--display);font-weight:800;font-size:16px;letter-spacing:-.2px;line-height:1.25}
+.badge{display:inline-flex;align-items:center;gap:6px;margin:10px 0 14px;font-family:var(--display);font-weight:700;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--blueliner);background:rgba(77,200,237,.12);border:1px solid rgba(77,200,237,.3);border-radius:20px;padding:5px 11px}
+.badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}
+.badge.ok{color:var(--ok);background:rgba(88,163,69,.12);border-color:rgba(88,163,69,.35)}
+.badge.bad{color:var(--bad);background:rgba(240,83,78,.1);border-color:rgba(240,83,78,.3)}
+.badge.warn{color:var(--warn);background:rgba(247,148,29,.1);border-color:rgba(247,148,29,.3)}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.metrics.three{grid-template-columns:repeat(3,1fr)}
+.metrics + .metrics{margin-top:10px}
+.metric{background:rgba(255,255,255,.06);border:1px solid var(--stroke);border-radius:var(--r-md);padding:14px 10px;text-align:center;min-width:0}
+.metric.wide{grid-column:1/-1}
+.metric-label{font-family:var(--display);font-weight:700;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-low);margin-bottom:6px;line-height:1.35}
+.metric-value{font-family:var(--display);font-weight:900;font-size:30px;letter-spacing:-1px;line-height:1.05;overflow-wrap:anywhere}
+.metric-value.sm{font-size:20px;letter-spacing:-.4px}
+.metric-sub{font-size:12px;font-weight:600;color:var(--text-mid);margin-top:5px}
+.metric.hero-m{background:linear-gradient(135deg, rgba(77,200,237,.20), rgba(77,200,237,.06));border-color:rgba(77,200,237,.4)}
+.metric.hero-m .metric-label{color:var(--blueliner)}
+.metric.hero-m .metric-value{color:var(--blueliner);font-size:40px}
+.c-blue{color:var(--blueliner)} .c-green{color:var(--ok)} .c-warn{color:var(--warn)} .c-bad{color:var(--bad)}
+
+.note{display:flex;gap:10px;margin-top:12px;padding:12px 13px;border-radius:var(--r-sm);background:rgba(77,200,237,.08);border:1px solid rgba(77,200,237,.22);font-size:12.5px;color:var(--text-mid);line-height:1.5}
+.note b{display:block;color:var(--blueliner);font-family:var(--display);font-weight:700;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.note.warn{background:rgba(247,148,29,.08);border-color:rgba(247,148,29,.28)}
+.note.warn b{color:var(--warn)}
+.note svg{flex:none;margin-top:1px}
+.disclaimer{margin-top:14px;padding-top:12px;border-top:1px solid var(--stroke);font-size:11.5px;color:var(--text-low);line-height:1.55}
+
+/* TABLE */
+.tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px 14px;text-align:center}
+thead th{font-family:var(--display);font-weight:700;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-low);background:rgba(255,255,255,.03);border-bottom:1px solid var(--stroke)}
+th:first-child,td:first-child{text-align:left}
+tbody tr{border-bottom:1px solid var(--stroke);transition:background .15s}
+tbody tr:last-child{border-bottom:0}
+tbody td{font-size:14px;font-weight:600;color:var(--text-hi)}
+tbody td:first-child{font-family:var(--display);font-weight:800;font-size:13.5px;color:var(--text-mid)}
+td.na{color:var(--text-low);font-weight:500}
+tr.clickable{cursor:pointer}
+tr.clickable:active{background:rgba(255,255,255,.04)}
+tr.active{background:linear-gradient(90deg, rgba(77,200,237,.16), rgba(77,200,237,.04))}
+tr.active td:first-child{color:var(--blueliner);box-shadow:inset 3px 0 0 var(--blueliner)}
+tr.active td{font-weight:800}
+tr.group th,tr.group td{font-family:var(--display);font-weight:700;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ok);background:rgba(88,163,69,.10);text-align:left;border-top:1px solid rgba(88,163,69,.3);border-bottom:1px solid rgba(88,163,69,.3);padding:9px 14px}
+.table-notes{padding:4px 14px 14px}
+.table-notes p{font-size:12px;color:var(--text-low);line-height:1.5;margin-top:10px}
+
+.empty{padding:40px 20px;text-align:center;color:var(--text-low)}
+.empty-ic{width:56px;height:56px;margin:0 auto 12px;border-radius:16px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);border:1px solid var(--stroke);color:var(--text-mid)}
+.empty b{display:block;font-family:var(--display);font-weight:800;font-size:14px;color:var(--text-mid)}
+.empty small{display:block;font-size:12px;margin-top:4px}
+
+/* INFO LIST (guidance) */
+.info-item{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--stroke)}
+.info-item:last-child{border-bottom:0}
+.info-item .tile{flex:none;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#06121c}
+.info-item b{display:block;font-family:var(--display);font-weight:800;font-size:13.5px;margin-bottom:4px}
+.info-item p{font-size:13px;color:var(--text-mid);line-height:1.6}
+.bullets{list-style:none}
+.bullets li{position:relative;padding-left:18px;margin-bottom:8px;font-size:13px;color:var(--text-mid);line-height:1.55}
+.bullets li:last-child{margin-bottom:0}
+.bullets li::before{content:'';position:absolute;left:2px;top:.6em;width:6px;height:6px;border-radius:50%;background:var(--blueliner);box-shadow:0 0 6px rgba(77,200,237,.8)}
+.alert{display:flex;gap:10px;margin-top:14px;padding:13px 14px;border-radius:var(--r-md);background:linear-gradient(90deg, rgba(247,148,29,.14), rgba(247,148,29,.04));border:1px solid rgba(247,148,29,.35);font-size:12.5px;font-weight:600;color:var(--text-hi);line-height:1.5}
+.alert svg{flex:none;margin-top:1px;color:var(--warn)}
+
+.reset{margin-top:14px;width:100%;font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.04em;color:var(--text-low);background:transparent;border:1px dashed var(--stroke-2);border-radius:var(--r-sm);padding:10px;cursor:pointer}
+
+footer{margin-top:26px;text-align:center;font-family:var(--display);font-weight:700;font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--text-low);line-height:1.8}
+footer .flow-line{margin:10px auto 0;width:40px;height:2px}
+
+:root{--tool:var(--redline);--tool-glow:rgba(240,83,78,.30)}
+.hero h1 em{font-style:normal;color:var(--redline)}
+.types{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.type{
+  display:flex;align-items:center;gap:10px;padding:12px;border-radius:var(--r-sm);cursor:pointer;
+  background:rgba(255,255,255,.05);border:1px solid var(--stroke);color:var(--text-mid);
+  font-family:var(--display);font-weight:700;font-size:12.5px;text-align:left;line-height:1.2;
+  transition:transform .15s ease,background .2s,border-color .2s,color .2s;
+}
+.type:active{transform:scale(.97)}
+.type i{flex:none;width:12px;height:12px;border-radius:50%;box-shadow:0 0 0 3px rgba(255,255,255,.06)}
+.type.on{color:var(--text-hi);background:rgba(240,83,78,.12);border-color:rgba(240,83,78,.55);box-shadow:0 6px 16px rgba(240,83,78,.18)}
+.metric.total{background:linear-gradient(135deg, rgba(240,83,78,.22), rgba(240,83,78,.06));border-color:rgba(240,83,78,.45)}
+.metric.total .metric-label{color:#ff9b97}
+.metric.total .metric-value{color:#ff9b97;font-size:42px}
+.runs{margin-top:10px}
+.run-bar{height:8px;border-radius:5px;background:rgba(255,255,255,.07);overflow:hidden}
+.run-bar i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--nugreen),var(--blueliner));transition:width .4s var(--spring)}
+.run-bar.over i{background:linear-gradient(90deg,var(--pressureline),var(--redline))}
+.run-key{display:flex;justify-content:space-between;margin-top:6px;font-size:11.5px;font-weight:600;color:var(--text-low)}
+tr.active{background:linear-gradient(90deg, rgba(240,83,78,.16), rgba(240,83,78,.04))}
+tr.active td:first-child{color:#ff9b97;box-shadow:inset 3px 0 0 var(--redline)}
+#refTable th,#refTable td{padding:11px 8px}
+#refTable th:first-child,#refTable td:first-child{padding-left:14px}
+#refTable th:last-child,#refTable td:last-child{padding-right:14px}
+#refTable td{font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap stagger">
+
+  <header class="hero" style="--i:0">
+    <div class="hero-ic">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+    </div>
+    <div class="eyebrow">Pressure Pipe Coating</div>
+    <h1><em>Redline</em> Calculator</h1>
+    <p>Choose a pipe type and size, then enter the reline length to calculate epoxy requirements.</p>
+    <div class="flow-line"></div>
+  </header>
+
+  <div class="sect" style="--i:1"><h2>Pipe type</h2><span class="hint">Step 1</span></div>
+  <section class="card card-pad" style="--i:2">
+    <div class="types" id="typeBtns" role="radiogroup" aria-label="Pipe type">
+      <button type="button" class="type" data-v="copper"><i style="background:#D08A4E"></i>Copper</button>
+      <button type="button" class="type" data-v="galvanised"><i style="background:#9AA3AB"></i>Galvanised Iron</button>
+      <button type="button" class="type" data-v="stainless"><i style="background:#D7DDE2"></i>Stainless Steel</button>
+      <button type="button" class="type" data-v="polybutylene"><i style="background:#8FA0C8"></i>Polybutylene</button>
+    </div>
+    <div class="row2" style="margin-top:16px">
+      <div class="field">
+        <label class="label" for="pipeSize">Pipe size</label>
+        <div class="select">
+          <select id="pipeSize" disabled><option value="">Pick type first</option></select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label" for="relineLength">Reline length</label>
+        <div class="unit-input"><input type="number" id="relineLength" inputmode="decimal" placeholder="e.g. 20" min="0.1" step="0.1" disabled><span>m</span></div>
+      </div>
+    </div>
+    <div class="hint-line" id="lengthHint">Select a pipe size to enable the length field.</div>
+  </section>
+
+  <section class="result" id="resultCard" aria-live="polite">
+    <div class="eyebrow">Redline epoxy requirements</div>
+    <div class="result-desc" id="resultTitle">—</div>
+    <div class="badge" id="runBadge"></div>
+
+    <div class="metrics">
+      <div class="metric total wide">
+        <div class="metric-label">Total resin</div>
+        <div class="metric-value" id="valTotal">—</div>
+        <div class="metric-sub">kg</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Redline Part A</div>
+        <div class="metric-value c-blue" id="valPartA">—</div>
+        <div class="metric-sub">kg · 70%</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Redline Part B</div>
+        <div class="metric-value c-warn" id="valPartB">—</div>
+        <div class="metric-sub">kg · 30%</div>
+      </div>
+    </div>
+    <div class="metrics three">
+      <div class="metric">
+        <div class="metric-label">Epoxy / m</div>
+        <div class="metric-value sm" id="valKgPerM">—</div>
+        <div class="metric-sub">kg / m</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Max run</div>
+        <div class="metric-value sm" id="valMaxDist">—</div>
+        <div class="metric-sub">m per app.</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Velocity</div>
+        <div class="metric-value sm" id="valVelocity">—</div>
+        <div class="metric-sub">CFM</div>
+      </div>
+    </div>
+    <div class="runs" id="runWrap">
+      <div class="run-bar" id="runBar"><i id="runFill"></i></div>
+      <div class="run-key"><span id="runText"></span><span id="runMax"></span></div>
+    </div>
+    <div class="disclaimer">Epoxy split: 70% Part A · 30% Part B. Mix ratios are by weight. Always mix thoroughly before application. Results are indicative — confirm quantities with your Nuflow technical representative before ordering.</div>
+  </section>
+
+  <div class="sect" style="--i:3"><h2>Full pipe reference</h2><span class="hint" id="tblHint">Reference</span></div>
+  <section class="card" style="--i:4">
+    <div class="tbl-scroll">
+      <table id="refTable">
+        <thead><tr><th>Size</th><th>m / kg</th><th>kg / m</th><th>Max run</th><th>CFM</th></tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer style="--i:5">© Nuflow Australasia · Redline Calculator<div class="flow-line"></div></footer>
+</div>
+
+<script>
+// ── Pipe data ──────────────────────────────────────────────
+const PIPE_DATA = {
+  copper: {
+    label: 'Copper',
+    sizes: [
+      { size: '13 mm',  mPerKg: 32.3,  kgPerM: 0.031,   maxDist: 21  },
+      { size: '15 mm',  mPerKg: 26.9,  kgPerM: 0.037,   maxDist: 24  },
+      { size: '19 mm',  mPerKg: 18.8,  kgPerM: 0.053,   maxDist: 30  },
+      { size: '20 mm',  mPerKg: 17.5,  kgPerM: 0.057,   maxDist: 31  },
+      { size: '22 mm',  mPerKg: 15.23, kgPerM: 0.04293, maxDist: null },
+      { size: '25 mm',  mPerKg: 14.1,  kgPerM: 0.071,   maxDist: 37  },
+      { size: '32 mm',  mPerKg: 10.8,  kgPerM: 0.093,   maxDist: 43  },
+      { size: '40 mm',  mPerKg: 8.7,   kgPerM: 0.114,   maxDist: 49  },
+      { size: '50 mm',  mPerKg: 6.4,   kgPerM: 0.157,   maxDist: 61  },
+      { size: '65 mm',  mPerKg: 5.2,   kgPerM: 0.192,   maxDist: 76  },
+      { size: '80 mm',  mPerKg: 4.4,   kgPerM: 0.229,   maxDist: 91  },
+      { size: '100 mm', mPerKg: 3.4,   kgPerM: 0.298,   maxDist: 122 },
+      { size: '125 mm', mPerKg: 2.7,   kgPerM: 0.372,   maxDist: 152 },
+      { size: '150 mm', mPerKg: 2.4,   kgPerM: 0.425,   maxDist: 183 },
+      { size: '200 mm', mPerKg: 1.7,   kgPerM: 0.595,   maxDist: 244 },
+      { size: '250 mm', mPerKg: 1.0,   kgPerM: 0.992,   maxDist: 274 },
+      { size: '300 mm', mPerKg: 0.5,   kgPerM: 1.984,   maxDist: 335 },
+    ]
+  },
+  galvanised: {
+    label: 'Galvanised Iron',
+    sizes: [
+      { size: '13 mm',  mPerKg: 24.2, kgPerM: 0.041, maxDist: 21  },
+      { size: '15 mm',  mPerKg: 20.8, kgPerM: 0.048, maxDist: 24  },
+      { size: '19 mm',  mPerKg: 16.1, kgPerM: 0.062, maxDist: 30  },
+      { size: '20 mm',  mPerKg: 15.5, kgPerM: 0.065, maxDist: 31  },
+      { size: '25 mm',  mPerKg: 12.1, kgPerM: 0.083, maxDist: 37  },
+      { size: '32 mm',  mPerKg: 9.4,  kgPerM: 0.106, maxDist: 43  },
+      { size: '40 mm',  mPerKg: 8.1,  kgPerM: 0.124, maxDist: 49  },
+      { size: '50 mm',  mPerKg: 6.0,  kgPerM: 0.165, maxDist: 61  },
+      { size: '65 mm',  mPerKg: 4.7,  kgPerM: 0.213, maxDist: 76  },
+      { size: '80 mm',  mPerKg: 4.0,  kgPerM: 0.248, maxDist: 91  },
+      { size: '100 mm', mPerKg: 3.0,  kgPerM: 0.331, maxDist: 122 },
+      { size: '125 mm', mPerKg: 2.4,  kgPerM: 0.425, maxDist: 152 },
+      { size: '150 mm', mPerKg: 2.0,  kgPerM: 0.496, maxDist: 183 },
+      { size: '200 mm', mPerKg: 1.5,  kgPerM: 0.676, maxDist: 244 },
+      { size: '250 mm', mPerKg: 1.2,  kgPerM: 0.827, maxDist: 274 },
+      { size: '300 mm', mPerKg: 1.0,  kgPerM: 0.992, maxDist: 335 },
+    ]
+  },
+  stainless: {
+    label: 'Stainless Steel',
+    sizes: [
+      { size: '13 mm',  mPerKg: 24.2, kgPerM: 0.041, maxDist: 21  },
+      { size: '15 mm',  mPerKg: 20.8, kgPerM: 0.048, maxDist: 24  },
+      { size: '19 mm',  mPerKg: 16.1, kgPerM: 0.062, maxDist: 30  },
+      { size: '20 mm',  mPerKg: 15.5, kgPerM: 0.065, maxDist: 31  },
+      { size: '25 mm',  mPerKg: 12.1, kgPerM: 0.083, maxDist: 37  },
+      { size: '32 mm',  mPerKg: 9.4,  kgPerM: 0.106, maxDist: 43  },
+      { size: '40 mm',  mPerKg: 8.1,  kgPerM: 0.124, maxDist: 49  },
+      { size: '50 mm',  mPerKg: 6.0,  kgPerM: 0.165, maxDist: 61  },
+      { size: '65 mm',  mPerKg: 4.7,  kgPerM: 0.213, maxDist: 76  },
+      { size: '80 mm',  mPerKg: 4.0,  kgPerM: 0.248, maxDist: 91  },
+      { size: '100 mm', mPerKg: 3.0,  kgPerM: 0.331, maxDist: 122 },
+      { size: '125 mm', mPerKg: 2.4,  kgPerM: 0.425, maxDist: 152 },
+      { size: '150 mm', mPerKg: 2.0,  kgPerM: 0.496, maxDist: 183 },
+      { size: '200 mm', mPerKg: 1.5,  kgPerM: 0.676, maxDist: 244 },
+      { size: '250 mm', mPerKg: 1.2,  kgPerM: 0.827, maxDist: 274 },
+      { size: '300 mm', mPerKg: 1.0,  kgPerM: 0.992, maxDist: 335 },
+    ]
+  },
+  polybutylene: {
+    label: 'Polybutylene',
+    sizes: [
+      { size: '18 mm', mPerKg: 32.3,  kgPerM: 0.031, maxDist: 27 },
+      { size: '22 mm', mPerKg: 15.23, kgPerM: 0.043, maxDist: 34 },
+    ]
+  }
+};
+
+const $ = id => document.getElementById(id);
+const buzz = () => { try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} };
+let pipeType = '';
+let selectedRow = null;
+
+const velocityOf = s => Math.pow(parseFloat(s.size) * 0.0393701, 2) * 108.767;
+
+$('typeBtns').addEventListener('click', e => {
+  const b = e.target.closest('.type'); if (!b) return;
+  buzz();
+  pipeType = b.dataset.v;
+  document.querySelectorAll('.type').forEach(t => { t.classList.toggle('on', t === b); t.setAttribute('aria-checked', t === b); });
+  onTypeChange();
+});
+$('pipeSize').addEventListener('change', onSizeChange);
+$('relineLength').addEventListener('input', calculate);
+
+function onTypeChange() {
+  const sizeSelect = $('pipeSize');
+  sizeSelect.innerHTML = '<option value="">Select size</option>';
+  $('relineLength').disabled = true;
+  $('lengthHint').textContent = 'Select a pipe size to enable the length field.';
+  selectedRow = null;
+  hideResult();
+  PIPE_DATA[pipeType].sizes.forEach((s, i) => {
+    const opt = document.createElement('option');
+    opt.value = i; opt.textContent = s.size;
+    sizeSelect.appendChild(opt);
+  });
+  sizeSelect.disabled = false;
+  renderTable(null);
+}
+
+function onSizeChange() {
+  const sizeIdx = $('pipeSize').value;
+  if (sizeIdx === '') {
+    $('relineLength').disabled = true;
+    $('lengthHint').textContent = 'Select a pipe size to enable the length field.';
+    selectedRow = null; hideResult(); renderTable(null); return;
+  }
+  selectedRow = PIPE_DATA[pipeType].sizes[parseInt(sizeIdx)];
+  $('relineLength').disabled = false;
+  $('lengthHint').innerHTML = `Max single run: <strong>${selectedRow.maxDist != null ? selectedRow.maxDist + ' m' : 'N/A'}</strong> · ${selectedRow.kgPerM.toFixed(4)} kg per metre`;
+  renderTable(parseInt(sizeIdx));
+  calculate();
+}
+
+function calculate() {
+  if (!selectedRow) { hideResult(); return; }
+  const length = parseFloat($('relineLength').value);
+  if (!length || length <= 0) { hideResult(); return; }
+
+  const kgPerM = selectedRow.kgPerM;
+  const maxDist = selectedRow.maxDist;
+  const totalResin = kgPerM * length;
+
+  $('valPartA').textContent  = (totalResin * 0.70).toFixed(3);
+  $('valPartB').textContent  = (totalResin * 0.30).toFixed(3);
+  $('valTotal').textContent  = totalResin.toFixed(3);
+  $('valKgPerM').textContent = kgPerM.toFixed(4);
+  $('valMaxDist').textContent = maxDist != null ? maxDist : 'N/A';
+  $('valVelocity').textContent = velocityOf(selectedRow).toFixed(2);
+  $('resultTitle').textContent = `${PIPE_DATA[pipeType].label} — ${selectedRow.size}`;
+
+  // Length vs max single run
+  const badge = $('runBadge');
+  if (maxDist != null) {
+    const apps = Math.ceil(length / maxDist);
+    const over = length > maxDist;
+    badge.className = 'badge ' + (over ? 'warn' : 'ok');
+    badge.textContent = `${length} m reline  ·  ${over ? apps + ' applications needed' : 'single application'}`;
+    $('runWrap').style.display = '';
+    $('runBar').classList.toggle('over', over);
+    $('runFill').style.width = Math.min(100, length / maxDist * 100) + '%';
+    $('runText').textContent = `${length} m of ${maxDist} m max run`;
+    $('runMax').textContent = over ? `${(length - maxDist).toFixed(1)} m over` : `${(maxDist - length).toFixed(1)} m spare`;
+  } else {
+    badge.className = 'badge';
+    badge.textContent = `${length} m reline`;
+    $('runWrap').style.display = 'none';
+  }
+  showResult();
+}
+
+function showResult() {
+  const card = $('resultCard');
+  if (!card.classList.contains('visible')) { void card.offsetWidth; card.classList.add('visible'); }
+}
+function hideResult() { $('resultCard').classList.remove('visible'); }
+
+function renderTable(activeIdx) {
+  const tbody = $('tableBody');
+  if (!pipeType) {
+    $('tblHint').textContent = 'Reference';
+    tbody.innerHTML = `<tr><td colspan="5" style="padding:0"><div class="empty">
+      <div class="empty-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></div>
+      <b>Choose a pipe type</b><small>Select a pipe type to see reference data</small></div></td></tr>`;
+    return;
+  }
+  $('tblHint').textContent = 'Tap a row to select';
+  tbody.innerHTML = PIPE_DATA[pipeType].sizes.map((s, i) => `
+    <tr class="clickable ${i === activeIdx ? 'active' : ''}" data-i="${i}">
+      <td>${s.size}</td>
+      <td>${s.mPerKg.toFixed(2)}</td>
+      <td>${s.kgPerM.toFixed(4)}</td>
+      <td class="${s.maxDist != null ? '' : 'na'}">${s.maxDist != null ? s.maxDist + ' m' : '—'}</td>
+      <td>${velocityOf(s).toFixed(2)}</td>
+    </tr>`).join('');
+  tbody.querySelectorAll('tr.clickable').forEach(tr => tr.addEventListener('click', () => {
+    buzz();
+    $('pipeSize').value = tr.dataset.i;
+    onSizeChange();
+    const r = $('pipeSize').getBoundingClientRect();
+    if (r.top < 0) $('pipeSize').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }));
+}
+
+renderTable(null);
+</script>
+</body>
+</html>

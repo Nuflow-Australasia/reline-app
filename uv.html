@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0A113A">
+<title>IMPREGLiner UV Curing — Nuflow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   NUFLOW RELINE APP — shared tool theme (mirrors index.html)
+   ============================================================ */
+:root{
+  --ink:#060914; --nublue-dark:#0A113A; --nublue:#252D65;
+  --blueliner:#4DC8ED; --nugreen:#58A345; --nugrey:#ECEDED;
+  --pressureline:#F7941D; --redline:#F0534E; --nuvline:#893DFF;
+  --nupine:#0A6242; --htar:#802673; --nucoat:#C473AD; --sumoline:#727D84;
+
+  --surface-1:rgba(255,255,255,.045); --surface-2:rgba(255,255,255,.08);
+  --stroke:rgba(255,255,255,.09); --stroke-2:rgba(255,255,255,.16);
+  --text-hi:#F4F6F8; --text-mid:rgba(236,237,237,.72); --text-low:rgba(236,237,237,.45);
+
+  --ok:#8ed07c; --bad:#ff8a86; --warn:#FFB25B;
+
+  --display:'Montserrat',-apple-system,'Segoe UI',Roboto,sans-serif;
+  --body:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --r-lg:22px; --r-md:16px; --r-sm:12px;
+  --spring:cubic-bezier(.34,1.56,.64,1);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--ink)}
+body{
+  font-family:var(--body);color:var(--text-hi);min-height:100vh;
+  -webkit-font-smoothing:antialiased;background:var(--ink);
+  padding:16px 16px calc(32px + env(safe-area-inset-bottom,0px));
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(120% 50% at 85% -10%, rgba(77,200,237,.10), transparent 55%),
+    radial-gradient(110% 45% at 0% 105%, rgba(88,163,69,.07), transparent 55%),
+    linear-gradient(180deg, var(--nublue-dark) 0%, var(--ink) 60%);
+}
+.wrap{max-width:560px;margin:0 auto}
+.hidden{display:none!important}
+
+.stagger > *{opacity:0;transform:translateY(12px);animation:riseIn .5s var(--spring) forwards;animation-delay:calc(var(--i,0)*70ms)}
+@keyframes riseIn{to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.stagger > *,.result.visible{animation:none!important;opacity:1!important;transform:none!important}}
+
+/* HERO */
+.hero{
+  position:relative;overflow:hidden;border-radius:var(--r-lg);padding:22px 20px 20px;
+  background:
+    radial-gradient(120% 120% at 100% 0%, var(--tool-glow), transparent 50%),
+    radial-gradient(100% 100% at 0% 100%, rgba(77,200,237,.10), transparent 55%),
+    linear-gradient(160deg, var(--nublue) 0%, var(--nublue-dark) 58%, #080d29 100%);
+  border:1px solid var(--stroke-2);box-shadow:0 18px 44px rgba(0,0,0,.42);
+}
+.hero::after{
+  content:'';position:absolute;width:200px;height:200px;border-radius:50%;
+  background:radial-gradient(circle, var(--tool-glow), transparent 65%);
+  top:-90px;right:-50px;animation:drift 9s ease-in-out infinite alternate;pointer-events:none;
+}
+@keyframes drift{to{transform:translate(-26px,20px) scale(1.15)}}
+.hero-ic{
+  width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;
+  background:var(--tool);color:#06121c;margin-bottom:14px;box-shadow:0 8px 20px var(--tool-glow);
+}
+.eyebrow{font-family:var(--display);font-weight:700;font-size:10.5px;letter-spacing:.32em;color:var(--blueliner);text-transform:uppercase;margin-bottom:8px}
+.hero h1{font-family:var(--display);font-weight:900;font-size:27px;letter-spacing:-.8px;line-height:1.08}
+.hero p{margin-top:8px;font-size:13.5px;color:var(--text-mid);line-height:1.5;max-width:36ch}
+.flow-line{margin-top:16px;height:3px;border-radius:3px;width:64px;background:linear-gradient(90deg,var(--blueliner),var(--nugreen));box-shadow:0 0 12px rgba(77,200,237,.65)}
+
+/* SECTIONS + CARDS */
+.sect{display:flex;align-items:baseline;justify-content:space-between;margin:22px 2px 10px}
+.sect h2{font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:-.2px}
+.sect .hint{font-size:11.5px;color:var(--text-low);font-weight:600;letter-spacing:.03em}
+.card{border-radius:var(--r-lg);background:var(--surface-1);border:1px solid var(--stroke);box-shadow:0 14px 34px rgba(0,0,0,.35);overflow:hidden}
+.card-pad{padding:18px 16px}
+
+/* INPUTS */
+.field + .field{margin-top:16px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row2 .field + .field{margin-top:0}
+.row2 + .field,.field + .row2{margin-top:16px}
+.label{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.02em;color:var(--text-hi);margin-bottom:8px}
+.label small{font-family:var(--body);font-weight:600;font-size:11px;color:var(--text-low);letter-spacing:.02em;text-align:right}
+.label.dim{opacity:.4}
+.select{position:relative}
+.select::after{content:'';position:absolute;right:16px;top:50%;width:8px;height:8px;margin-top:-6px;border-right:2px solid var(--text-mid);border-bottom:2px solid var(--text-mid);transform:rotate(45deg);pointer-events:none}
+select,input[type=number]{
+  width:100%;appearance:none;-webkit-appearance:none;
+  font-family:var(--body);font-size:16px;font-weight:600;color:var(--text-hi);
+  background:rgba(255,255,255,.06);border:1px solid var(--stroke-2);border-radius:var(--r-sm);
+  padding:14px 42px 14px 14px;cursor:pointer;transition:border-color .2s,box-shadow .2s,opacity .2s;
+}
+input[type=number]{padding:14px;cursor:text;-moz-appearance:textfield}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input::placeholder{color:var(--text-low);font-weight:500}
+select option{background:#0b1024;color:var(--text-hi)}
+select:focus,input:focus{outline:none;border-color:var(--blueliner);box-shadow:0 0 0 3px rgba(77,200,237,.2)}
+select:disabled,input:disabled{opacity:.4;cursor:not-allowed}
+.unit-input{position:relative}
+.unit-input input{padding-right:46px}
+.unit-input span{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-family:var(--display);font-weight:700;font-size:12px;color:var(--text-low);pointer-events:none}
+.hint-line{font-size:11.5px;color:var(--text-low);margin-top:7px;line-height:1.45}
+.hint-line strong{color:var(--blueliner)}
+.hint-line.err{color:var(--bad)}
+input.err{border-color:rgba(240,83,78,.6);box-shadow:0 0 0 3px rgba(240,83,78,.15)}
+
+/* Chips */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{
+  font-family:var(--display);font-weight:800;font-size:13px;letter-spacing:-.2px;color:var(--text-mid);
+  background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:11px;
+  padding:10px 12px;cursor:pointer;min-width:52px;text-align:center;
+  transition:transform .15s ease,background .2s,color .2s,border-color .2s,box-shadow .2s;
+}
+.chip:active{transform:scale(.93)}
+.chip.on{color:#06121c;background:var(--blueliner);border-color:var(--blueliner);box-shadow:0 6px 16px rgba(77,200,237,.35)}
+.chip:disabled{opacity:.35;cursor:not-allowed}
+
+/* Segmented */
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:4px;background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:14px}
+.seg button{font-family:var(--display);font-weight:700;font-size:12px;line-height:1.2;color:var(--text-mid);background:transparent;border:0;border-radius:10px;padding:10px 4px;cursor:pointer;transition:background .2s,color .2s}
+.seg button small{display:block;font-family:var(--body);font-size:10.5px;font-weight:600;opacity:.7;margin-top:2px}
+.seg button.on{background:var(--surface-2);color:var(--blueliner);box-shadow:inset 0 0 0 1px var(--stroke-2)}
+.seg button:disabled{opacity:.35;cursor:not-allowed}
+
+/* Toggle */
+.toggle-row{display:flex;align-items:center;gap:12px;margin-top:16px;padding:12px 13px;border-radius:var(--r-sm);background:rgba(255,255,255,.04);border:1px solid var(--stroke);cursor:pointer}
+.toggle-row b{flex:1;font-family:var(--display);font-weight:700;font-size:13px}
+.toggle-row b small{display:block;font-family:var(--body);font-weight:500;font-size:11.5px;color:var(--text-low);margin-top:2px}
+.toggle{position:relative;flex:none;width:46px;height:28px}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle .knob{position:absolute;inset:0;border-radius:20px;background:rgba(255,255,255,.14);transition:background .2s}
+.toggle .knob::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);transition:transform .25s var(--spring)}
+.toggle input:checked + .knob{background:var(--nugreen)}
+.toggle input:checked + .knob::after{transform:translateX(18px)}
+
+/* RESULT */
+.result{
+  display:none;margin-top:14px;position:relative;overflow:hidden;border-radius:var(--r-lg);padding:18px 16px 16px;
+  background:
+    radial-gradient(120% 120% at 100% 0%, rgba(77,200,237,.16), transparent 50%),
+    radial-gradient(100% 100% at 0% 100%, rgba(88,163,69,.12), transparent 55%),
+    linear-gradient(160deg, var(--nublue) 0%, var(--nublue-dark) 60%, #080d29 100%);
+  border:1px solid var(--stroke-2);box-shadow:0 18px 44px rgba(0,0,0,.42);
+}
+.result.visible{display:block;animation:riseIn .45s var(--spring) both;opacity:0;transform:translateY(12px)}
+.result-desc{font-family:var(--display);font-weight:800;font-size:16px;letter-spacing:-.2px;line-height:1.25}
+.badge{display:inline-flex;align-items:center;gap:6px;margin:10px 0 14px;font-family:var(--display);font-weight:700;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--blueliner);background:rgba(77,200,237,.12);border:1px solid rgba(77,200,237,.3);border-radius:20px;padding:5px 11px}
+.badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}
+.badge.ok{color:var(--ok);background:rgba(88,163,69,.12);border-color:rgba(88,163,69,.35)}
+.badge.bad{color:var(--bad);background:rgba(240,83,78,.1);border-color:rgba(240,83,78,.3)}
+.badge.warn{color:var(--warn);background:rgba(247,148,29,.1);border-color:rgba(247,148,29,.3)}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.metrics.three{grid-template-columns:repeat(3,1fr)}
+.metrics + .metrics{margin-top:10px}
+.metric{background:rgba(255,255,255,.06);border:1px solid var(--stroke);border-radius:var(--r-md);padding:14px 10px;text-align:center;min-width:0}
+.metric.wide{grid-column:1/-1}
+.metric-label{font-family:var(--display);font-weight:700;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-low);margin-bottom:6px;line-height:1.35}
+.metric-value{font-family:var(--display);font-weight:900;font-size:30px;letter-spacing:-1px;line-height:1.05;overflow-wrap:anywhere}
+.metric-value.sm{font-size:20px;letter-spacing:-.4px}
+.metric-sub{font-size:12px;font-weight:600;color:var(--text-mid);margin-top:5px}
+.metric.hero-m{background:linear-gradient(135deg, rgba(77,200,237,.20), rgba(77,200,237,.06));border-color:rgba(77,200,237,.4)}
+.metric.hero-m .metric-label{color:var(--blueliner)}
+.metric.hero-m .metric-value{color:var(--blueliner);font-size:40px}
+.c-blue{color:var(--blueliner)} .c-green{color:var(--ok)} .c-warn{color:var(--warn)} .c-bad{color:var(--bad)}
+
+.note{display:flex;gap:10px;margin-top:12px;padding:12px 13px;border-radius:var(--r-sm);background:rgba(77,200,237,.08);border:1px solid rgba(77,200,237,.22);font-size:12.5px;color:var(--text-mid);line-height:1.5}
+.note b{display:block;color:var(--blueliner);font-family:var(--display);font-weight:700;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.note.warn{background:rgba(247,148,29,.08);border-color:rgba(247,148,29,.28)}
+.note.warn b{color:var(--warn)}
+.note svg{flex:none;margin-top:1px}
+.disclaimer{margin-top:14px;padding-top:12px;border-top:1px solid var(--stroke);font-size:11.5px;color:var(--text-low);line-height:1.55}
+
+/* TABLE */
+.tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px 14px;text-align:center}
+thead th{font-family:var(--display);font-weight:700;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-low);background:rgba(255,255,255,.03);border-bottom:1px solid var(--stroke)}
+th:first-child,td:first-child{text-align:left}
+tbody tr{border-bottom:1px solid var(--stroke);transition:background .15s}
+tbody tr:last-child{border-bottom:0}
+tbody td{font-size:14px;font-weight:600;color:var(--text-hi)}
+tbody td:first-child{font-family:var(--display);font-weight:800;font-size:13.5px;color:var(--text-mid)}
+td.na{color:var(--text-low);font-weight:500}
+tr.clickable{cursor:pointer}
+tr.clickable:active{background:rgba(255,255,255,.04)}
+tr.active{background:linear-gradient(90deg, rgba(77,200,237,.16), rgba(77,200,237,.04))}
+tr.active td:first-child{color:var(--blueliner);box-shadow:inset 3px 0 0 var(--blueliner)}
+tr.active td{font-weight:800}
+tr.group th,tr.group td{font-family:var(--display);font-weight:700;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ok);background:rgba(88,163,69,.10);text-align:left;border-top:1px solid rgba(88,163,69,.3);border-bottom:1px solid rgba(88,163,69,.3);padding:9px 14px}
+.table-notes{padding:4px 14px 14px}
+.table-notes p{font-size:12px;color:var(--text-low);line-height:1.5;margin-top:10px}
+
+.empty{padding:40px 20px;text-align:center;color:var(--text-low)}
+.empty-ic{width:56px;height:56px;margin:0 auto 12px;border-radius:16px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);border:1px solid var(--stroke);color:var(--text-mid)}
+.empty b{display:block;font-family:var(--display);font-weight:800;font-size:14px;color:var(--text-mid)}
+.empty small{display:block;font-size:12px;margin-top:4px}
+
+/* INFO LIST (guidance) */
+.info-item{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--stroke)}
+.info-item:last-child{border-bottom:0}
+.info-item .tile{flex:none;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#06121c}
+.info-item b{display:block;font-family:var(--display);font-weight:800;font-size:13.5px;margin-bottom:4px}
+.info-item p{font-size:13px;color:var(--text-mid);line-height:1.6}
+.bullets{list-style:none}
+.bullets li{position:relative;padding-left:18px;margin-bottom:8px;font-size:13px;color:var(--text-mid);line-height:1.55}
+.bullets li:last-child{margin-bottom:0}
+.bullets li::before{content:'';position:absolute;left:2px;top:.6em;width:6px;height:6px;border-radius:50%;background:var(--blueliner);box-shadow:0 0 6px rgba(77,200,237,.8)}
+.alert{display:flex;gap:10px;margin-top:14px;padding:13px 14px;border-radius:var(--r-md);background:linear-gradient(90deg, rgba(247,148,29,.14), rgba(247,148,29,.04));border:1px solid rgba(247,148,29,.35);font-size:12.5px;font-weight:600;color:var(--text-hi);line-height:1.5}
+.alert svg{flex:none;margin-top:1px;color:var(--warn)}
+
+.reset{margin-top:14px;width:100%;font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.04em;color:var(--text-low);background:transparent;border:1px dashed var(--stroke-2);border-radius:var(--r-sm);padding:10px;cursor:pointer}
+
+footer{margin-top:26px;text-align:center;font-family:var(--display);font-weight:700;font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--text-low);line-height:1.8}
+footer .flow-line{margin:10px auto 0;width:40px;height:2px}
+
+:root{--tool:var(--nuvline);--tool-glow:rgba(137,61,255,.34)}
+.hero-ic{color:#fff}
+.partner{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.partner img{height:22px;width:auto;opacity:.9}
+.partner span{font-family:var(--display);font-weight:700;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-low)}
+.hero .star{color:#FFD166}
+input.dn-input-error{border-color:rgba(240,83,78,.6);box-shadow:0 0 0 3px rgba(240,83,78,.15)}
+.dn-hint{font-size:11.5px;color:var(--text-low);margin-top:7px}
+.dn-hint strong{color:#c7a6ff}
+.dn-hint.dn-hint-error{color:var(--bad)}
+.toggle-row .star{color:#FFD166}
+.toggle input:checked + .knob{background:var(--nuvline)}
+
+.result{background:
+  radial-gradient(120% 120% at 100% 0%, rgba(137,61,255,.22), transparent 50%),
+  radial-gradient(100% 100% at 0% 100%, rgba(77,200,237,.12), transparent 55%),
+  linear-gradient(160deg, var(--nublue) 0%, var(--nublue-dark) 60%, #080d29 100%)}
+.speed{margin-top:14px;padding:18px 14px;border-radius:var(--r-md);text-align:center;background:linear-gradient(135deg, rgba(137,61,255,.25), rgba(77,200,237,.10));border:1px solid rgba(137,61,255,.5);box-shadow:0 10px 30px rgba(137,61,255,.2)}
+.speed .metric-label{color:#c7a6ff}
+.speed .metric-value{font-size:56px;letter-spacing:-2px;color:#fff}
+.speed .metric-sub{color:#c7a6ff}
+.metrics.four{grid-template-columns:1fr 1fr;margin-top:10px}
+
+/* Reference table — wide, sticky first column */
+.ref-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--stroke);font-size:12px;color:var(--text-mid);font-weight:600}
+.ref-head .dot{width:8px;height:8px;border-radius:50%;background:var(--nuvline);box-shadow:0 0 8px var(--nuvline);flex:none}
+#table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+#table-wrap table{width:auto;min-width:100%}
+#table-wrap th,#table-wrap td{padding:9px 10px;font-size:12.5px;white-space:nowrap;text-align:center}
+#table-wrap thead th{font-size:10px;letter-spacing:.06em;line-height:1.3}
+#table-wrap th:first-child,#table-wrap td:first-child{position:sticky;left:0;z-index:2;text-align:left;background:#0d1330;box-shadow:1px 0 0 var(--stroke);padding-left:14px}
+#table-wrap thead th:first-child{z-index:3}
+#table-wrap tr.pressure-row th,#table-wrap tr.pressure-row td{font-size:11px;color:var(--blueliner);font-weight:700;background:rgba(77,200,237,.06);text-transform:none;letter-spacing:0}
+#table-wrap tr.pressure-row th:first-child{background:#0e1a38;color:var(--blueliner);font-family:var(--display)}
+#table-wrap tr.sec-hdr th{position:static;text-align:left;font-family:var(--display);font-weight:700;font-size:10px;letter-spacing:.1em;color:#FFD166;background:rgba(255,209,102,.07);border-top:1px solid rgba(255,209,102,.25);border-bottom:1px solid rgba(255,209,102,.25);box-shadow:none}
+#table-wrap td.v{font-family:var(--display);font-weight:800}
+#table-wrap td.na{color:var(--text-low);font-weight:500}
+#table-wrap .sel-col{background:rgba(137,61,255,.14)}
+#table-wrap th.sel-col{color:#c7a6ff;box-shadow:inset 0 -2px 0 var(--nuvline)}
+#table-wrap tr.sel-row td{background:rgba(77,200,237,.12)}
+#table-wrap tr.sel-row td:first-child{color:var(--blueliner);background:#10224a;box-shadow:inset 3px 0 0 var(--blueliner)}
+#table-wrap tr.sel-row td.sel-col{background:var(--nuvline);color:#fff;border-radius:6px}
+#result-card:not(.hidden){display:block;animation:riseIn .45s var(--spring) both;opacity:0;transform:translateY(12px)}
+.scroll-hint{padding:9px 14px;font-size:11px;color:var(--text-low);border-top:1px solid var(--stroke)}
+</style>
+</head>
+<body>
+<div class="wrap stagger">
+
+  <header class="hero" style="--i:0">
+    <div class="partner">
+      <img src="https://www.impreg.de/wpi/wp-content/uploads/2020/12/impreg-group-white.svg" alt="IMPREG Group" onerror="this.parentNode.style.display='none'">
+      <span>Partner data</span>
+    </div>
+    <div class="hero-ic">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </div>
+    <div class="eyebrow">UV Curing Tool</div>
+    <h1>IMPREGLiner UV Curing</h1>
+    <p>Look up working pressure, timing and maximum curing speed for your UV light setup. <span class="star">★</span> = peroxide (combination curing).</p>
+    <div class="flow-line"></div>
+  </header>
+
+  <div class="sect" style="--i:1"><h2>Equipment</h2><span class="hint">Step 1</span></div>
+  <section class="card card-pad" style="--i:2">
+    <div class="field">
+      <label class="label" for="sel-group">Equipment group</label>
+      <div class="select">
+        <select id="sel-group">
+          <option value="">Select equipment group</option>
+          <option value="lc400">Light Chain (400–650 W)</option>
+          <option value="lc1kw">Light Chain (1,000 W)</option>
+          <option value="ims">IMS</option>
+          <option value="prokasro">ProKASRO</option>
+          <option value="ree">REE</option>
+          <option value="ibg">IBG</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label class="label" for="sel-config">Configuration</label>
+      <div class="select">
+        <select id="sel-config" disabled><option value="">Select group first</option></select>
+      </div>
+    </div>
+  </section>
+
+  <div id="params-card" class="hidden">
+    <div class="sect"><h2>Parameters</h2><span class="hint">Step 2</span></div>
+    <section class="card card-pad">
+      <div class="row2">
+        <div class="field">
+          <label class="label" for="sel-dn">Pipe diameter</label>
+          <div class="unit-input"><input type="number" id="sel-dn" class="dn-input" inputmode="numeric" placeholder="e.g. 225" min="1" max="2000" step="1" disabled><span>DN</span></div>
+        </div>
+        <div class="field" id="watt-field">
+          <label class="label" for="sel-watt">Lamp power</label>
+          <div class="select">
+            <select id="sel-watt" disabled><option value="">DN first</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="dn-hint hidden" id="dn-hint">↳ Using table data for <strong id="dn-matched">—</strong></div>
+      <div class="field" style="margin-top:16px">
+        <label class="label" for="sel-wt">Wall thickness</label>
+        <div class="select">
+          <select id="sel-wt" disabled><option value="">Select DN first</option></select>
+        </div>
+      </div>
+      <label class="toggle-row" for="tog-peroxide">
+        <b>Using peroxide <span class="star">★</span><small>Combination curing — shows the higher speeds available</small></b>
+        <span class="toggle"><input type="checkbox" id="tog-peroxide"><span class="knob"></span></span>
+      </label>
+    </section>
+  </div>
+
+  <section class="result hidden" id="result-card" aria-live="polite">
+    <div class="eyebrow">IMPREGLiner curing parameters</div>
+    <div class="result-desc" id="res-title">—</div>
+    <div class="speed">
+      <div class="metric-label">Maximum curing speed</div>
+      <div class="metric-value" id="res-speed">—</div>
+      <div class="metric-sub">cm / min</div>
+    </div>
+    <div class="metrics four">
+      <div class="metric"><div class="metric-label">Working pressure</div><div class="metric-value sm c-blue" id="res-pressure">—</div><div class="metric-sub">bar</div></div>
+      <div class="metric"><div class="metric-label">V-Start</div><div class="metric-value sm c-green" id="res-vstart">—</div><div class="metric-sub">m / min</div></div>
+      <div class="metric"><div class="metric-label">Ignition / switch-off</div><div class="metric-value sm" id="res-ignition">—</div><div class="metric-sub">by wall thickness</div></div>
+      <div class="metric"><div class="metric-label">Waiting time</div><div class="metric-value sm" id="res-waiting">—</div><div class="metric-sub">before start</div></div>
+    </div>
+    <div class="note warn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFB25B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <div><b>Ramp up gradually</b>Always start curing at the lowest speed. Increase by 0.10 m/min every 60 s (90 s below +8 °C) until the specified speed is reached. For VE resin liners, reduce speed by 20%.</div>
+    </div>
+    <div class="disclaimer">The maximum curing speed requires optimum installation conditions. Refer to IMPREG documentation for full timing detail split by wall thickness.</div>
+  </section>
+
+  <div id="table-card" class="hidden">
+    <div class="sect"><h2>Reference table</h2><span class="hint">Speeds in cm/min</span></div>
+    <section class="card">
+      <div class="ref-head"><span class="dot"></span><span id="tbl-config-name">—</span></div>
+      <div id="table-wrap"></div>
+      <div class="scroll-hint">← Swipe sideways to see all diameters →</div>
+    </section>
+  </div>
+
+  <footer style="--i:3">© IMPREG GmbH · IMPREGLiner UV Curing Parameters · Version 6<br>Presented by Nuflow Australasia<div class="flow-line"></div></footer>
+</div>
+
+<script>
+// =============================================================
+// DATA — sourced from IMPREG GmbH Curing Parameters v6
+// cols: {dn, watt, pressure, ignitionThin, ignitionThick, ignitionSplit, waitingThin, waitingThick, waitingSplit}
+// rows: {label, p (peroxide bool), speeds[]}
+// speeds: 0 = N/A for that combination
+// =============================================================
+const GROUPS={
+  lc400:['lc4','lc8','lc9','lc10','lc12','lc15'],
+  lc1kw:['lc4_1kw','lc8_1kw','lc9_1kw'],
+  ims:['ims_4e','ims_3e','ims_2c'],
+  prokasro:['pk2_lq56','pk3_lq56','pk4_lq56','pk2_lq58','pk3_lq58','pk4_lq58','pk2_2kw','pk3_2kw','pk_j2','pk_j3','pk_j2_2kw','pk_j3_2kw'],
+  ree:['ree_1200','ree_2000','ree_3000','ree_4000_core'],
+  ibg:['ibg_1000s','ibg_1500s','ibg_1200b','ibg_1500b','ibg_2000b']
+};
+
+const C={}; // config store
+function def(id,label,vstart,cols,rows){C[id]={id,label,vstart,cols,rows};}
+function col(dn,watt,pressure,iT,iTk,iSp,wT,wTk,wSp){return{dn,watt,pressure,iT,iTk,iSp,wT,wTk,wSp};}
+function row(label,p,...speeds){return{label,p,speeds};}
+
+// ── LIGHT CHAIN 400-650 W ─────────────────────────────────────
+// 4 lamps: DNs 150–400 (500,600 all zero → excluded)
+def('lc4','4 lamps à 400–600 (650) W','0.20',[
+  col(150,400,'0.55–0.65','60 s','60 s',null,'75 s','75 s',null),
+  col(200,400,'0.55–0.65','75 s','75 s',null,'150 s','90 s','6.0'),
+  col(250,400,'0.45–0.55','75 s','75 s',null,'150 s','90 s','6.0'),
+  col(300,400,'0.45–0.55','90 s','90 s',null,'180 s','240 s','6.0'),
+  col(300,600,'0.45–0.55','90 s','90 s',null,'180 s','240 s','6.0'),
+  col(350,400,'0.45–0.55','90 s','90 s',null,'180 s','240 s','6.0'),
+  col(350,600,'0.45–0.55','90 s','90 s',null,'180 s','240 s','6.0'),
+  col(400,400,'0.40–0.50','120 s','120 s',null,'240 s','300 s','6.0'),
+  col(400,600,'0.40–0.50','120 s','120 s',null,'240 s','300 s','6.0'),
+],[
+  row('≤ 3.3 mm',false,65,60,55,50,60,45,55,40,50),
+  row('3.3 – 4.0 mm',false,60,55,50,45,55,40,50,35,45),
+  row('4.0 – 5.0 mm',false,55,50,45,40,50,35,45,30,45),
+  row('5.0 – 6.0 mm',false,50,45,40,35,45,30,45,25,40),
+  row('6.0 – 7.0 mm',false,0,40,35,30,40,25,35,20,30),
+  row('7.0 – 8.0 mm',false,0,0,0,25,35,20,30,15,25),
+  row('8.0 – 9.0 mm',false,0,0,0,0,0,0,0,0,0),
+]);
+
+// 8 lamps: DNs 150–600
+def('lc8','8 lamps à 400–600 (650) W','0.25',[
+  col(150,400,'0.55–0.65','20 s','30 s','8.0','—','—',null),
+  col(200,400,'0.55–0.65','60 s','90 s','6.0','60 s','90 s','6.0'),
+  col(250,400,'0.45–0.55','45 s','60 s','6.0','60 s','90 s','6.0'),
+  col(300,400,'0.45–0.55','60 s','90 s','6.0','60 s','90 s','6.0'),
+  col(300,600,'0.45–0.55','45 s','60 s','6.0','45 s','60 s','6.0'),
+  col(350,400,'0.45–0.55','60 s','90 s','6.0','90 s','120 s','6.0'),
+  col(350,600,'0.45–0.55','45 s','60 s','6.0','60 s','90 s','6.0'),
+  col(400,400,'0.40–0.50','90 s','120 s','6.0','90 s','120 s','6.0'),
+  col(400,600,'0.40–0.50','60 s','90 s','6.0','60 s','90 s','6.0'),
+  col(500,400,'0.40–0.50','90 s','120 s','6.0','90 s','120 s','6.0'),
+  col(500,600,'0.40–0.50','60 s','90 s','6.0','60 s','90 s','6.0'),
+  col(600,400,'0.30–0.40','90 s','120 s','6.0','90 s','120 s','6.0'),
+  col(600,600,'0.30–0.40','60 s','90 s','6.0','60 s','90 s','6.0'),
+],[
+  row('≤ 3.3 mm',false,140,130,120,110,130,100,120,90,110,0,0,0,0),
+  row('3.3 – 4.0 mm',false,130,120,110,100,125,90,115,80,105,60,85,40,60),
+  row('4.0 – 5.0 mm',false,120,110,100,90,115,80,105,70,95,50,75,30,50),
+  row('5.0 – 6.0 mm',false,110,100,90,80,105,70,95,60,85,40,65,20,40),
+  row('6.0 – 7.0 mm',false,0,85,75,65,90,55,80,45,70,25,50,0,25),
+  row('7.0 – 8.0 mm',false,0,0,0,55,80,45,70,35,60,15,40,0,0),
+  row('8.0 – 9.0 mm',false,0,0,0,0,0,0,0,25,50,5,30,0,0),
+  row('8.0 – 9.0 mm ★',true,0,0,0,0,0,0,0,55,75,45,65,0,0),
+  row('9.0 – 10.0 mm ★',true,0,0,0,0,0,0,0,45,65,35,55,0,0),
+]);
+
+def('lc9','9 lamps à 400–600 (650) W','0.25',[
+  col(150,400,'0.55–0.65','15 s','15 s',null,'—','—',null),
+  col(200,400,'0.55–0.65','30 s','60 s','6.0','30 s','60 s','6.0'),
+  col(250,400,'0.45–0.55','15 s','30 s','6.0','30 s','60 s','6.0'),
+  col(300,400,'0.45–0.55','30 s','60 s','6.0','30 s','60 s','6.0'),
+  col(300,600,'0.45–0.55','15 s','30 s','6.0','30 s','60 s','6.0'),
+  col(350,400,'0.45–0.55','30 s','60 s','6.0','30 s','60 s','6.0'),
+  col(350,600,'0.45–0.55','15 s','30 s','6.0','30 s','60 s','6.0'),
+  col(400,400,'0.40–0.50','30 s','60 s','6.0','30 s','60 s','6.0'),
+  col(400,600,'0.40–0.50','15 s','30 s','6.0','30 s','60 s','6.0'),
+  col(500,400,'0.40–0.50','30 s','60 s','6.0','30 s','60 s','6.0'),
+  col(500,600,'0.40–0.50','15 s','30 s','6.0','30 s','60 s','6.0'),
+  col(600,400,'0.30–0.40','30 s','60 s','6.0','30 s','60 s','6.0'),
+  col(600,600,'0.30–0.40','15 s','30 s','6.0','30 s','60 s','6.0'),
+],[
+  row('≤ 3.3 mm',false,150,140,130,120,140,105,130,95,120,0,0,0,0),
+  row('3.3 – 4.0 mm',false,140,130,120,105,135,95,125,85,110,65,90,45,65),
+  row('4.0 – 5.0 mm',false,130,120,105,95,125,85,110,75,100,55,80,30,55),
+  row('5.0 – 6.0 mm',false,120,105,95,85,110,75,100,65,90,45,70,20,45),
+  row('6.0 – 7.0 mm',false,0,90,80,70,95,60,85,50,75,25,55,0,25),
+  row('7.0 – 8.0 mm',false,0,0,0,60,85,50,75,35,65,15,45,0,0),
+  row('8.0 – 9.0 mm',false,0,0,0,0,0,0,0,25,55,5,30,0,0),
+  row('8.0 – 9.0 mm ★',true,0,0,0,0,0,0,0,60,80,50,70,0,0),
+  row('9.0 – 10.0 mm ★',true,0,0,0,0,0,0,0,50,70,35,60,0,0),
+]);
+
+def('lc10','10 lamps à 400–600 (650) W','0.25',[
+  col(150,400,'0.55–0.65','15 s','15 s',null,'—','—',null),
+  col(200,400,'0.55–0.65','30 s','60 s','6.0','30 s','60 s','6.0'),
+  col(250,400,'0.45–0.55','15 s','30 s','6.0','30 s','60 s','6.0'),
+  col(300,400,'0.45–0.55','30 s','60 s','6.0','30 s','60 s','6.0'),
+  col(300,600,'0.45–0.55','15 s','30 s','6.0','30 s','60 s','6.0'),
+  col(350,400,'0.45–0.55','30 s','60 s','6.0','30 s','60 s','6.0'),
+  col(350,600,'0.45–0.55','15 s','30 s','6.0','30 s','60 s','6.0'),
+  col(400,400,'0.40–0.50','30 s','60 s','6.0','30 s','60 s','6.0'),
+  col(400,600,'0.40–0.50','15 s','30 s','6.0','30 s','60 s','6.0'),
+  col(500,400,'0.40–0.50','30 s','60 s','6.0','30 s','60 s','6.0'),
+  col(500,600,'0.40–0.50','15 s','30 s','6.0','30 s','60 s','6.0'),
+  col(600,400,'0.30–0.40','30 s','60 s','6.0','30 s','60 s','6.0'),
+  col(600,600,'0.30–0.40','15 s','30 s','6.0','30 s','60 s','6.0'),
+],[
+  row('≤ 3.3 mm',false,165,155,145,130,155,120,145,105,130,0,0,0,0),
+  row('3.3 – 4.0 mm',false,155,145,130,120,150,105,135,95,125,70,100,50,70),
+  row('4.0 – 5.0 mm',false,145,130,120,105,135,95,125,85,115,60,90,35,60),
+  row('5.0 – 6.0 mm',false,130,120,105,95,125,85,115,70,100,50,75,25,50),
+  row('6.0 – 7.0 mm',false,0,100,90,75,105,65,95,55,85,30,60,0,30),
+  row('7.0 – 8.0 mm',false,0,0,0,65,95,55,85,40,70,20,50,0,0),
+  row('8.0 – 9.0 mm',false,0,0,0,0,0,0,0,30,60,5,35,0,0),
+  row('8.0 – 9.0 mm ★',true,0,0,0,0,0,0,0,60,80,50,70,0,0),
+  row('9.0 – 10.0 mm ★',true,0,0,0,0,0,0,0,50,70,35,60,0,0),
+]);
+
+def('lc12','12 lamps à 400–600 (650) W','0.25',[
+  col(150,400,'0.55–0.65','15 s','30 s','8.0','—','—',null),
+  col(200,400,'0.55–0.65','30 s','90 s','6.0','30 s','90 s','6.0'),
+  col(250,400,'0.45–0.55','15 s','60 s','6.0','30 s','60 s','6.0'),
+  col(300,400,'0.45–0.55','30 s','60 s','6.0','30 s','60 s','6.0'),
+  col(300,600,'0.45–0.55','15 s','30 s','6.0','30 s','60 s','6.0'),
+  col(350,400,'0.45–0.55','30 s','60 s','6.0','30 s','60 s','6.0'),
+  col(350,600,'0.45–0.55','15 s','30 s','6.0','30 s','60 s','6.0'),
+  col(400,400,'0.40–0.50','30 s','60 s','6.0','30 s','60 s','6.0'),
+  col(400,600,'0.40–0.50','15 s','30 s','6.0','30 s','60 s','6.0'),
+  col(500,400,'0.40–0.50','30 s','60 s','6.0','30 s','60 s','6.0'),
+  col(500,600,'0.40–0.50','15 s','30 s','6.0','30 s','60 s','6.0'),
+  col(600,400,'0.30–0.40','30 s','60 s','6.0','30 s','60 s','6.0'),
+  col(600,600,'0.30–0.40','15 s','30 s','6.0','30 s','60 s','6.0'),
+],[
+  row('≤ 3.3 mm',false,200,185,170,155,185,145,170,130,155,0,0,0,0),
+  row('3.3 – 4.0 mm',false,185,170,155,145,180,130,165,115,150,85,120,55,85),
+  row('4.0 – 5.0 mm',false,170,155,145,130,165,115,150,100,135,70,105,45,70),
+  row('5.0 – 6.0 mm',false,155,145,130,115,150,100,135,85,120,55,95,30,55),
+  row('6.0 – 7.0 mm',false,0,120,105,95,130,80,115,65,100,35,70,0,35),
+  row('7.0 – 8.0 mm',false,0,0,0,80,115,65,100,50,85,20,55,0,0),
+  row('8.0 – 9.0 mm',false,0,0,0,0,0,0,0,35,70,5,45,0,0),
+  row('8.0 – 9.0 mm ★',true,0,0,0,0,0,0,0,80,105,65,95,0,0),
+  row('9.0 – 10.0 mm ★',true,0,0,0,0,0,0,0,65,95,50,80,0,0),
+]);
+
+def('lc15','15 lamps à 400–600 (650) W','0.25',[
+  col(150,400,'0.55–0.65','0 s','0 s',null,'0 s','0 s',null),
+  col(200,400,'0.55–0.65','0 s','15 s','8.0','0 s','0 s',null),
+  col(250,400,'0.45–0.55','0 s','15 s','8.0','0 s','0 s',null),
+  col(300,400,'0.45–0.55','0 s','15 s','8.0','0 s','0 s',null),
+  col(300,600,'0.45–0.55','0 s','15 s','8.0','0 s','0 s',null),
+  col(350,400,'0.45–0.55','20 s','20 s',null,'0 s','15 s','6.0'),
+  col(350,600,'0.45–0.55','20 s','20 s',null,'0 s','15 s','6.0'),
+  col(400,400,'0.40–0.50','20 s','20 s',null,'0 s','30 s','6.0'),
+  col(400,600,'0.40–0.50','20 s','20 s',null,'0 s','30 s','6.0'),
+  col(500,400,'0.40–0.50','30 s','30 s',null,'0 s','30 s','6.0'),
+  col(500,600,'0.40–0.50','30 s','30 s',null,'0 s','30 s','6.0'),
+  col(600,400,'0.30–0.40','30 s','30 s',null,'0 s','30 s','6.0'),
+  col(600,600,'0.30–0.40','30 s','30 s',null,'0 s','30 s','6.0'),
+],[
+  row('≤ 3.3 mm',false,250,230,215,195,230,180,215,160,195,0,0,0,0),
+  row('3.3 – 4.0 mm',false,230,215,195,180,225,160,205,145,185,105,150,70,105),
+  row('4.0 – 5.0 mm',false,215,195,180,160,205,145,185,125,170,90,135,55,90),
+  row('5.0 – 6.0 mm',false,195,180,160,145,185,125,170,105,150,70,115,35,70),
+  row('6.0 – 7.0 mm',false,0,150,135,115,160,100,145,80,125,45,90,0,45),
+  row('7.0 – 8.0 mm',false,0,0,0,100,145,80,125,60,105,25,70,0,0),
+  row('8.0 – 9.0 mm',false,0,0,0,0,0,0,0,45,90,10,55,0,0),
+  row('8.0 – 9.0 mm ★',true,0,0,0,0,0,0,0,100,135,80,115,0,0),
+  row('9.0 – 10.0 mm ★',true,0,0,0,0,0,0,0,80,115,60,100,0,0),
+]);
+
+// ── LIGHT CHAIN 1,000 W ──────────────────────────────────────
+def('lc8_1kw','8 lamps à 1,000 W','0.15',[
+  col(600,null,'0.30–0.40','30 s','45 s','7.0','60 s','90 s','7.0'),
+  col(700,null,'0.30–0.40','30 s','45 s','7.0','60 s','90 s','7.0'),
+  col(800,null,'0.25–0.35','45 s','60 s','7.0','60 s','90 s','7.0'),
+  col(900,null,'0.25–0.35','45 s','60 s','7.0','60 s','90 s','7.0'),
+  col(1000,null,'0.20–0.30','45 s','60 s','7.0','60 s','90 s','7.0'),
+  col(1100,null,'0.20–0.30','45 s','60 s','7.0','60 s','90 s','7.0'),
+  col(1200,null,'0.20–0.30','45 s','60 s','7.0','60 s','90 s','7.0'),
+],[
+  row('4.0 mm',false,120,0,0,0,0,0,0),
+  row('4.0 – 5.0 mm',false,110,105,100,95,0,0,0),
+  row('5.0 – 6.0 mm',false,100,95,90,85,80,75,70),
+  row('6.0 – 7.0 mm',false,90,85,80,75,70,65,60),
+  row('7.0 – 8.0 mm',false,80,75,70,65,60,55,50),
+  row('8.0 – 9.0 mm',false,75,70,65,60,55,50,45),
+  row('9.0 – 10.0 mm',false,65,60,55,50,45,40,35),
+  row('10.0 – 11.0 mm',false,55,50,45,40,35,30,25),
+  row('11.0 – 12.0 mm',false,50,45,40,35,30,25,20),
+  row('12.0 – 13.0 mm',false,40,35,30,25,20,15,10),
+  row('8.0 – 9.0 mm ★',true,100,95,90,85,80,75,70),
+  row('9.0 – 10.0 mm ★',true,90,85,80,75,70,65,60),
+  row('10.0 – 11.0 mm ★',true,80,75,70,65,60,55,50),
+  row('11.0 – 12.0 mm ★',true,70,65,60,55,50,45,40),
+  row('12.0 – 13.0 mm ★',true,65,60,55,50,45,40,35),
+  row('13.0 – 14.0 mm ★',true,55,50,45,40,35,30,25),
+  row('14.0 – 15.0 mm ★',true,45,40,35,30,25,20,15),
+]);
+
+def('lc9_1kw','9 lamps à 1,000 W','0.15',[
+  col(600,null,'0.30–0.40','30 s','45 s','7.0','60 s','90 s','7.0'),
+  col(700,null,'0.30–0.40','30 s','45 s','7.0','60 s','90 s','7.0'),
+  col(800,null,'0.25–0.35','45 s','60 s','7.0','60 s','90 s','7.0'),
+  col(900,null,'0.25–0.35','45 s','60 s','7.0','60 s','90 s','7.0'),
+  col(1000,null,'0.20–0.30','45 s','60 s','7.0','60 s','90 s','7.0'),
+  col(1100,null,'0.20–0.30','45 s','60 s','7.0','60 s','90 s','7.0'),
+  col(1200,null,'0.20–0.30','45 s','60 s','7.0','60 s','90 s','7.0'),
+],[
+  row('4.0 mm',false,130,0,0,0,0,0,0),
+  row('4.0 – 5.0 mm',false,120,115,110,105,0,0,0),
+  row('5.0 – 6.0 mm',false,110,105,100,95,90,85,75),
+  row('6.0 – 7.0 mm',false,100,95,90,85,75,70,65),
+  row('7.0 – 8.0 mm',false,90,85,75,70,65,60,55),
+  row('8.0 – 9.0 mm',false,85,75,70,65,60,55,50),
+  row('9.0 – 10.0 mm',false,70,65,60,55,50,45,40),
+  row('10.0 – 11.0 mm',false,60,55,50,45,40,35,30),
+  row('11.0 – 12.0 mm',false,55,50,45,40,35,30,20),
+  row('12.0 – 13.0 mm',false,45,40,35,30,20,15,10),
+  row('8.0 – 9.0 mm ★',true,110,105,100,95,90,85,75),
+  row('9.0 – 10.0 mm ★',true,100,95,90,85,75,70,65),
+  row('10.0 – 11.0 mm ★',true,90,85,75,70,65,60,55),
+  row('11.0 – 12.0 mm ★',true,75,70,65,60,55,50,45),
+  row('12.0 – 13.0 mm ★',true,70,65,60,55,50,45,40),
+  row('13.0 – 14.0 mm ★',true,60,55,50,45,40,35,30),
+  row('14.0 – 15.0 mm ★',true,50,45,40,35,30,20,15),
+]);
+
+def('lc4_1kw','4 lamps à 1,000 W','0.15',[
+  col(600,null,'0.30–0.40','45 s','60 s','7.0','90 s','120 s','7.0'),
+  col(700,null,'0.30–0.40','45 s','60 s','7.0','90 s','120 s','7.0'),
+  col(800,null,'0.25–0.35','60 s','90 s','7.0','90 s','120 s','7.0'),
+  col(900,null,'0.25–0.35','60 s','90 s','7.0','90 s','120 s','7.0'),
+  col(1000,null,'0.20–0.30','60 s','90 s','7.0','90 s','120 s','7.0'),
+  col(1100,null,'0.20–0.30','60 s','90 s','7.0','90 s','120 s','7.0'),
+  col(1200,null,'0.20–0.30','60 s','90 s','7.0','90 s','120 s','7.0'),
+],[
+  row('4.0 mm',false,55,0,0,0,0,0,0),
+  row('4.0 – 5.0 mm',false,50,45,45,45,0,0,0),
+  row('5.0 – 6.0 mm',false,45,45,40,40,35,35,30),
+  row('6.0 – 7.0 mm',false,40,40,35,35,30,30,25),
+  row('7.0 – 8.0 mm',false,35,35,30,30,25,25,25),
+  row('8.0 – 9.0 mm',false,35,30,30,25,25,25,20),
+  row('9.0 – 10.0 mm',false,30,25,25,25,20,20,15),
+  row('10.0 – 11.0 mm',false,25,25,20,20,15,15,10),
+  row('11.0 – 12.0 mm',false,25,20,20,15,15,10,10),
+  row('12.0 – 13.0 mm',false,20,15,15,10,10,5,5),
+  row('8.0 – 9.0 mm ★',true,45,45,40,40,35,35,30),
+  row('9.0 – 10.0 mm ★',true,40,40,35,35,30,30,25),
+  row('10.0 – 11.0 mm ★',true,35,35,30,30,25,25,25),
+  row('11.0 – 12.0 mm ★',true,30,30,25,25,25,20,20),
+  row('12.0 – 13.0 mm ★',true,30,25,25,25,20,20,15),
+  row('13.0 – 14.0 mm ★',true,25,25,20,20,15,15,10),
+  row('14.0 – 15.0 mm ★',true,20,20,15,15,10,10,5),
+]);
+
+// ── IMS ────────────────────────────────────────────────────────
+def('ims_4e','IMS — 4 elements à 3 lamps à 400/650 W','0.25',[
+  col(500,400,'0.40–0.50','60 s','60 s',null,'60 s','60 s',null),
+  col(500,650,'0.40–0.50','60 s','60 s',null,'60 s','60 s',null),
+  col(600,400,'0.30–0.40','60 s','60 s',null,'60 s','60 s',null),
+  col(600,650,'0.30–0.40','60 s','60 s',null,'60 s','60 s',null),
+  col(700,400,'0.30–0.40','90 s','90 s',null,'90 s','90 s',null),
+  col(700,650,'0.30–0.40','90 s','90 s',null,'90 s','90 s',null),
+  col(800,400,'0.25–0.35','90 s','90 s',null,'90 s','90 s',null),
+  col(800,650,'0.25–0.35','90 s','90 s',null,'90 s','90 s',null),
+  col(900,650,'0.25–0.35','120 s','120 s',null,'120 s','120 s',null),
+  col(1000,650,'0.20–0.30','120 s','120 s',null,'120 s','120 s',null),
+],[
+  row('4.0 mm',false,50,95,45,85,0,0,0,0,0,0),
+  row('4.0 – 5.0 mm',false,45,90,40,80,35,70,30,60,50,40),
+  row('5.0 – 6.0 mm',false,40,85,35,75,30,65,25,55,45,35),
+  row('6.0 – 7.0 mm',false,35,75,30,65,25,55,20,45,35,25),
+  row('7.0 – 8.0 mm',false,30,65,25,55,20,45,15,35,25,15),
+  row('8.0 – 9.0 mm',false,25,55,20,45,15,35,10,25,15,5),
+  row('8.0 – 9.0 mm ★',true,35,75,25,65,20,55,15,45,35,25),
+  row('9.0 – 10.0 mm ★',true,25,65,15,55,10,45,5,35,25,15),
+  row('10.0 – 11.0 mm ★',true,15,55,5,45,0,35,0,25,15,5),
+  row('11.0 – 12.0 mm ★',true,5,45,0,35,0,25,0,15,5,0),
+  row('12.0 – 13.0 mm ★',true,0,35,0,25,0,15,0,5,0,0),
+]);
+
+def('ims_3e','IMS — 3 elements à 4 lamps à 1,000 W','0.15',[
+  col(600,null,'0.30–0.40','60 s/core','120 s/core','7.0','240 s','240 s',null),
+  col(700,null,'0.30–0.40','60 s/core','120 s/core','7.0','240 s','240 s',null),
+  col(800,null,'0.25–0.35','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(900,null,'0.25–0.35','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(1000,null,'0.20–0.30','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(1100,null,'0.20–0.30','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(1200,null,'0.20–0.30','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+],[
+  row('≤ 4.0 mm',false,140,0,0,0,0,0,0),
+  row('4.0 – 5.0 mm',false,135,130,120,115,0,0,0),
+  row('5.0 – 6.0 mm',false,130,120,115,110,100,95,0),
+  row('6.0 – 7.0 mm',false,120,115,110,100,95,90,85),
+  row('7.0 – 8.0 mm',false,110,100,95,90,85,75,70),
+  row('8.0 – 9.0 mm',false,100,95,90,85,75,70,65),
+  row('8.0 – 9.0 mm ★',true,130,120,115,100,95,90,85),
+  row('9.0 – 10.0 mm ★',true,115,110,100,90,85,75,70),
+  row('10.0 – 11.0 mm ★',true,100,95,90,75,70,65,60),
+  row('11.0 – 12.0 mm ★',true,90,85,75,65,60,50,45),
+  row('12.0 – 13.0 mm ★',true,75,70,65,50,45,40,30),
+  row('13.0 – 14.0 mm ★',true,0,0,50,40,30,25,20),
+  row('14.0 – 15.0 mm ★',true,0,0,45,30,25,20,15),
+]);
+
+def('ims_2c','IMS — 2 cores à 6 lamps à 1,000 W','0.15',[
+  col(1000,null,'0.20–0.30','120 s/core','120 s/core',null,'300 s','360 s','8.0'),
+  col(1100,null,'0.20–0.30','120 s/core','120 s/core',null,'300 s','360 s','8.0'),
+  col(1200,null,'0.20–0.30','120 s/core','120 s/core',null,'300 s','360 s','8.0'),
+  col(1300,null,'0.20–0.30','120 s/core','120 s/core',null,'300 s','360 s','8.0'),
+  col(1400,null,'0.20–0.30','120 s/core','120 s/core',null,'300 s','360 s','8.0'),
+  col(1500,null,'0.20–0.30','120 s/core','120 s/core',null,'300 s','360 s','8.0'),
+  col(1600,null,'0.20–0.30','120 s/core','120 s/core',null,'300 s','360 s','8.0'),
+],[
+  row('5.0 – 6.0 mm',false,90,85,0,0,0,0,0),
+  row('6.0 – 7.0 mm',false,85,80,75,70,65,60,55),
+  row('7.0 – 8.0 mm',false,80,75,70,65,60,55,50),
+  row('8.0 – 9.0 mm',false,70,65,60,55,50,45,40),
+  row('8.0 – 9.0 mm ★',true,100,95,90,85,80,75,70),
+  row('9.0 – 10.0 mm ★',true,90,85,80,75,70,65,60),
+  row('10.0 – 11.0 mm ★',true,80,75,70,65,60,55,50),
+  row('11.0 – 12.0 mm ★',true,70,65,60,55,50,45,40),
+  row('12.0 – 13.0 mm ★',true,65,60,55,50,40,35,30),
+  row('13.0 – 14.0 mm ★',true,55,50,45,40,30,25,20),
+  row('14.0 – 15.0 mm ★',true,45,40,35,30,20,15,10),
+]);
+
+// ── ProKASRO ───────────────────────────────────────────────────
+def('pk2_lq56','ProKASRO — 2 cores à 4 lamps à 1,000 W (Double Core LQ56)','0.15',[
+  col(600,null,'0.30–0.40','60 s/core','120 s/core','7.0','240 s','240 s',null),
+  col(700,null,'0.30–0.40','60 s/core','120 s/core','7.0','240 s','240 s',null),
+  col(800,null,'0.25–0.35','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(900,null,'0.25–0.35','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(1000,null,'0.20–0.30','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(1100,null,'0.20–0.30','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(1200,null,'0.20–0.30','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(1300,null,'0.20–0.30','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+],[
+  row('≤ 4.0 mm',false,90,0,0,0,0,0,0,0),
+  row('4.0 – 5.0 mm',false,85,80,75,70,0,0,0,0),
+  row('5.0 – 6.0 mm',false,80,75,70,70,65,60,0,0),
+  row('6.0 – 7.0 mm',false,75,70,70,65,60,55,50,50),
+  row('7.0 – 8.0 mm',false,70,65,60,55,50,50,45,40),
+  row('8.0 – 9.0 mm',false,65,60,55,50,50,45,40,35),
+  row('8.0 – 9.0 mm ★',true,80,75,70,65,60,55,50,50),
+  row('9.0 – 10.0 mm ★',true,70,70,65,55,50,50,45,40),
+  row('10.0 – 11.0 mm ★',true,65,60,55,50,45,40,35,30),
+  row('11.0 – 12.0 mm ★',true,55,50,50,40,35,30,30,25),
+  row('12.0 – 13.0 mm ★',true,50,45,40,30,30,25,20,15),
+  row('13.0 – 14.0 mm ★',true,0,0,30,25,20,15,10,10),
+  row('14.0 – 15.0 mm ★',true,0,0,30,20,15,10,10,5),
+]);
+
+def('pk3_lq56','ProKASRO — 3 cores à 4 lamps à 1,000 W (Triple Core LQ56)','0.20',[
+  col(600,null,'0.30–0.40','90 s/core','120 s/core','7.0','120 s','120 s',null),
+  col(700,null,'0.30–0.40','90 s/core','120 s/core','7.0','120 s','120 s',null),
+  col(800,null,'0.25–0.35','120 s/core','120 s/core',null,'120 s','180 s','7.0'),
+  col(900,null,'0.25–0.35','120 s/core','120 s/core',null,'120 s','180 s','7.0'),
+  col(1000,null,'0.20–0.30','120 s/core','120 s/core',null,'120 s','180 s','7.0'),
+  col(1100,null,'0.20–0.30','120 s/core','120 s/core',null,'120 s','180 s','7.0'),
+  col(1200,null,'0.20–0.30','120 s/core','120 s/core',null,'120 s','180 s','7.0'),
+  col(1300,null,'0.20–0.30','120 s/core','120 s/core',null,'120 s','180 s','7.0'),
+],[
+  row('≤ 4.0 mm',false,110,0,0,0,0,0,0,0),
+  row('4.0 – 5.0 mm',false,110,105,95,90,0,0,0,0),
+  row('5.0 – 6.0 mm',false,105,95,90,90,80,75,0,0),
+  row('6.0 – 7.0 mm',false,95,90,90,80,75,70,70,60),
+  row('7.0 – 8.0 mm',false,90,80,75,70,70,60,55,50),
+  row('8.0 – 9.0 mm',false,80,75,70,70,60,55,50,50),
+  row('8.0 – 9.0 mm ★',true,105,95,90,80,75,70,70,60),
+  row('9.0 – 10.0 mm ★',true,90,90,80,70,70,60,55,50),
+  row('10.0 – 11.0 mm ★',true,80,75,70,60,55,50,50,40),
+  row('11.0 – 12.0 mm ★',true,70,70,60,50,50,40,35,30),
+  row('12.0 – 13.0 mm ★',true,60,55,50,40,35,30,25,20),
+  row('13.0 – 14.0 mm ★',true,0,0,40,30,25,20,15,10),
+  row('14.0 – 15.0 mm ★',true,0,0,35,25,20,15,10,5),
+]);
+
+def('pk4_lq56','ProKASRO — 4 cores à 4 lamps à 1,000 W (Quattro Core LQ56)','0.25',[
+  col(600,null,'0.30–0.40','90 s/core','120 s/core','7.0','30 s','0 s','7.0'),
+  col(700,null,'0.30–0.40','90 s/core','120 s/core','7.0','30 s','0 s','7.0'),
+  col(800,null,'0.25–0.35','120 s/core','120 s/core',null,'0 s','60 s','7.0'),
+  col(900,null,'0.25–0.35','120 s/core','120 s/core',null,'0 s','60 s','7.0'),
+  col(1000,null,'0.20–0.30','120 s/core','120 s/core',null,'0 s','60 s','7.0'),
+  col(1100,null,'0.20–0.30','120 s/core','120 s/core',null,'0 s','60 s','7.0'),
+  col(1200,null,'0.20–0.30','120 s/core','120 s/core',null,'0 s','60 s','7.0'),
+  col(1300,null,'0.20–0.30','120 s/core','120 s/core',null,'0 s','60 s','7.0'),
+],[
+  row('≤ 4.0 mm',false,150,0,0,0,0,0,0,0),
+  row('4.0 – 5.0 mm',false,145,135,130,125,0,0,0,0),
+  row('5.0 – 6.0 mm',false,135,130,125,115,110,105,0,0),
+  row('6.0 – 7.0 mm',false,130,125,115,110,105,95,90,80),
+  row('7.0 – 8.0 mm',false,115,110,105,95,90,80,75,70),
+  row('8.0 – 9.0 mm',false,110,105,95,90,80,75,70,60),
+  row('8.0 – 9.0 mm ★',true,135,130,125,110,105,95,90,80),
+  row('9.0 – 10.0 mm ★',true,125,115,110,95,90,80,75,70),
+  row('10.0 – 11.0 mm ★',true,110,105,95,80,75,70,60,55),
+  row('11.0 – 12.0 mm ★',true,95,90,80,70,60,55,50,40),
+  row('12.0 – 13.0 mm ★',true,80,75,70,55,50,40,35,30),
+  row('13.0 – 14.0 mm ★',true,0,0,55,40,35,30,20,10),
+  row('14.0 – 15.0 mm ★',true,0,0,50,35,30,20,10,10),
+]);
+
+def('pk2_lq58','ProKASRO — 2 cores à 4 lamps à 1,000 W (Double Core LQ58)','0.15',[
+  col(600,null,'0.30–0.40','60 s/core','120 s/core','7.0','240 s','240 s',null),
+  col(700,null,'0.30–0.40','60 s/core','120 s/core','7.0','240 s','240 s',null),
+  col(800,null,'0.25–0.35','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(900,null,'0.25–0.35','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(1000,null,'0.20–0.30','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(1100,null,'0.20–0.30','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(1200,null,'0.20–0.30','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(1300,null,'0.20–0.30','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+],[
+  row('≤ 4.0 mm',false,110,0,0,0,0,0,0,0),
+  row('4.0 – 5.0 mm',false,105,100,95,90,0,0,0,0),
+  row('5.0 – 6.0 mm',false,100,95,90,85,80,75,0,0),
+  row('6.0 – 7.0 mm',false,95,90,85,80,75,70,65,60),
+  row('7.0 – 8.0 mm',false,85,80,75,70,65,60,55,50),
+  row('8.0 – 9.0 mm',false,80,75,70,65,60,55,50,45),
+  row('8.0 – 9.0 mm ★',true,100,95,90,80,75,70,65,60),
+  row('9.0 – 10.0 mm ★',true,90,85,80,70,65,60,55,50),
+  row('10.0 – 11.0 mm ★',true,80,75,70,60,55,50,45,40),
+  row('11.0 – 12.0 mm ★',true,70,65,60,50,45,40,35,30),
+  row('12.0 – 13.0 mm ★',true,60,55,50,40,35,30,25,20),
+  row('13.0 – 14.0 mm ★',true,0,0,40,30,25,20,15,10),
+  row('14.0 – 15.0 mm ★',true,0,0,35,25,20,15,10,5),
+]);
+
+def('pk3_lq58','ProKASRO — 3 cores à 4 lamps à 1,000 W (Triple Core LQ58)','0.20',[
+  col(600,null,'0.30–0.40','90 s/core','120 s/core','7.0','120 s','120 s',null),
+  col(700,null,'0.30–0.40','90 s/core','120 s/core','7.0','120 s','120 s',null),
+  col(800,null,'0.25–0.35','120 s/core','120 s/core',null,'120 s','180 s','7.0'),
+  col(900,null,'0.25–0.35','120 s/core','120 s/core',null,'120 s','180 s','7.0'),
+  col(1000,null,'0.20–0.30','120 s/core','120 s/core',null,'120 s','180 s','7.0'),
+  col(1100,null,'0.20–0.30','120 s/core','120 s/core',null,'120 s','180 s','7.0'),
+  col(1200,null,'0.20–0.30','120 s/core','120 s/core',null,'120 s','180 s','7.0'),
+  col(1300,null,'0.20–0.30','120 s/core','120 s/core',null,'120 s','180 s','7.0'),
+],[
+  row('≤ 4.0 mm',false,140,0,0,0,0,0,0,0),
+  row('4.0 – 5.0 mm',false,135,130,120,115,0,0,0,0),
+  row('5.0 – 6.0 mm',false,130,120,115,110,100,95,0,0),
+  row('6.0 – 7.0 mm',false,120,115,110,100,95,90,85,75),
+  row('7.0 – 8.0 mm',false,110,100,95,90,85,75,70,65),
+  row('8.0 – 9.0 mm',false,100,95,90,85,75,70,65,60),
+  row('8.0 – 9.0 mm ★',true,130,120,115,100,95,90,85,75),
+  row('9.0 – 10.0 mm ★',true,115,110,100,90,85,75,70,65),
+  row('10.0 – 11.0 mm ★',true,100,95,90,75,70,65,60,50),
+  row('11.0 – 12.0 mm ★',true,90,85,75,65,60,50,45,40),
+  row('12.0 – 13.0 mm ★',true,75,70,65,50,45,40,30,25),
+  row('13.0 – 14.0 mm ★',true,0,0,50,40,30,25,20,15),
+  row('14.0 – 15.0 mm ★',true,0,0,45,30,25,20,15,5),
+]);
+
+def('pk4_lq58','ProKASRO — 4 cores à 4 lamps à 1,000 W (Quattro Core LQ58)','0.25',[
+  col(600,null,'0.30–0.40','90 s/core','120 s/core','7.0','30 s','0 s','7.0'),
+  col(700,null,'0.30–0.40','90 s/core','120 s/core','7.0','30 s','0 s','7.0'),
+  col(800,null,'0.25–0.35','120 s/core','120 s/core',null,'0 s','60 s','7.0'),
+  col(900,null,'0.25–0.35','120 s/core','120 s/core',null,'0 s','60 s','7.0'),
+  col(1000,null,'0.20–0.30','120 s/core','120 s/core',null,'0 s','60 s','7.0'),
+  col(1100,null,'0.20–0.30','120 s/core','120 s/core',null,'0 s','60 s','7.0'),
+  col(1200,null,'0.20–0.30','120 s/core','120 s/core',null,'0 s','60 s','7.0'),
+  col(1300,null,'0.20–0.30','120 s/core','120 s/core',null,'0 s','60 s','7.0'),
+],[
+  row('≤ 4.0 mm',false,185,0,0,0,0,0,0,0),
+  row('4.0 – 5.0 mm',false,180,170,160,155,0,0,0,0),
+  row('5.0 – 6.0 mm',false,170,160,155,145,135,130,0,0),
+  row('6.0 – 7.0 mm',false,160,155,145,135,130,120,110,100),
+  row('7.0 – 8.0 mm',false,145,135,130,120,110,100,95,85),
+  row('8.0 – 9.0 mm',false,135,130,120,110,100,95,85,75),
+  row('8.0 – 9.0 mm ★',true,170,160,155,135,130,120,110,100),
+  row('9.0 – 10.0 mm ★',true,155,145,135,120,110,100,95,85),
+  row('10.0 – 11.0 mm ★',true,135,130,120,100,95,85,75,70),
+  row('11.0 – 12.0 mm ★',true,120,110,100,85,75,70,60,50),
+  row('12.0 – 13.0 mm ★',true,100,95,85,70,60,50,45,35),
+  row('13.0 – 14.0 mm ★',true,0,0,70,50,45,35,25,15),
+  row('14.0 – 15.0 mm ★',true,0,0,60,45,35,25,15,10),
+]);
+
+def('pk2_2kw','ProKASRO — 2 cores à 4 lamps à 2,000 W (Double Core LQ58)','0.20',[
+  col(1000,null,'0.20–0.30','60 s/core','120 s/core','7.0','120 s','120 s',null),
+  col(1100,null,'0.20–0.30','60 s/core','120 s/core','7.0','120 s','120 s',null),
+  col(1200,null,'0.20–0.30','120 s/core','120 s/core',null,'120 s','180 s','7.0'),
+  col(1300,null,'0.20–0.30','120 s/core','120 s/core',null,'120 s','180 s','7.0'),
+],[
+  row('5.0 – 6.0 mm',false,140,130,0,0),
+  row('6.0 – 7.0 mm',false,130,125,115,105),
+  row('7.0 – 8.0 mm',false,115,105,95,90),
+  row('8.0 – 9.0 mm',false,105,95,90,80),
+  row('8.0 – 9.0 mm ★',true,130,125,115,105),
+  row('9.0 – 10.0 mm ★',true,115,105,95,90),
+  row('10.0 – 11.0 mm ★',true,95,90,80,70),
+  row('11.0 – 12.0 mm ★',true,80,70,60,55),
+  row('12.0 – 13.0 mm ★',true,60,55,45,35),
+  row('13.0 – 14.0 mm ★',true,45,35,25,20),
+  row('14.0 – 15.0 mm ★',true,35,25,20,10),
+]);
+
+def('pk3_2kw','ProKASRO — 3 cores à 4 lamps à 2,000 W (Triple Core LQ58)','0.30',[
+  col(1000,null,'0.20–0.30','60 s/core','90 s/core','7.0','60 s','90 s',null),
+  col(1100,null,'0.20–0.30','60 s/core','90 s/core','7.0','60 s','90 s',null),
+  col(1200,null,'0.20–0.30','90 s/core','90 s/core',null,'90 s','90 s','7.0'),
+  col(1300,null,'0.20–0.30','90 s/core','90 s/core',null,'90 s','90 s','7.0'),
+],[
+  row('5.0 – 6.0 mm',false,175,165,0,0),
+  row('6.0 – 7.0 mm',false,165,155,145,130),
+  row('7.0 – 8.0 mm',false,145,130,120,110),
+  row('8.0 – 9.0 mm',false,130,120,110,100),
+  row('8.0 – 9.0 mm ★',true,165,155,145,130),
+  row('9.0 – 10.0 mm ★',true,145,130,120,110),
+  row('10.0 – 11.0 mm ★',true,120,110,100,90),
+  row('11.0 – 12.0 mm ★',true,100,90,75,65),
+  row('12.0 – 13.0 mm ★',true,75,65,55,45),
+  row('13.0 – 14.0 mm ★',true,55,45,35,20),
+  row('14.0 – 15.0 mm ★',true,45,35,20,10),
+]);
+
+def('pk_j2','ProKASRO — 2 cores à 6 lamps à 1,000 W (Jumbo Core)','0.15',[
+  col(1000,null,'0.20–0.30','120 s/core','120 s/core',null,'300 s','360 s','8.0'),
+  col(1100,null,'0.20–0.30','120 s/core','120 s/core',null,'300 s','360 s','8.0'),
+  col(1200,null,'0.20–0.30','120 s/core','120 s/core',null,'300 s','360 s','8.0'),
+  col(1300,null,'0.20–0.30','120 s/core','120 s/core',null,'300 s','360 s','8.0'),
+  col(1400,null,'0.20–0.30','120 s/core','120 s/core',null,'300 s','360 s','8.0'),
+  col(1500,null,'0.20–0.30','120 s/core','120 s/core',null,'300 s','360 s','8.0'),
+  col(1600,null,'0.20–0.30','120 s/core','120 s/core',null,'300 s','360 s','8.0'),
+  col(1700,null,'0.20–0.25','120 s/core','120 s/core',null,'300 s','360 s','8.0'),
+],[
+  row('5.0 – 6.0 mm',false,90,85,0,0,0,0,0,0),
+  row('6.0 – 7.0 mm',false,85,80,75,70,65,60,55,50),
+  row('7.0 – 8.0 mm',false,80,75,70,65,60,55,50,45),
+  row('8.0 – 9.0 mm',false,70,65,60,55,50,45,40,35),
+  row('8.0 – 9.0 mm ★',true,100,95,90,85,80,75,70,65),
+  row('9.0 – 10.0 mm ★',true,90,85,80,75,70,65,60,55),
+  row('10.0 – 11.0 mm ★',true,80,75,70,65,60,55,50,45),
+  row('11.0 – 12.0 mm ★',true,70,65,60,55,50,45,40,35),
+  row('12.0 – 13.0 mm ★',true,65,60,55,50,40,35,30,25),
+  row('13.0 – 14.0 mm ★',true,55,50,45,40,30,25,20,15),
+  row('14.0 – 15.0 mm ★',true,45,40,35,30,20,15,10,5),
+]);
+
+def('pk_j3','ProKASRO — 3 cores à 6 lamps à 1,000 W (Jumbo Core)','0.20',[
+  col(1000,null,'0.20–0.30','120 s/core','120 s/core',null,'180 s','240 s','8.0'),
+  col(1100,null,'0.20–0.30','120 s/core','120 s/core',null,'180 s','240 s','8.0'),
+  col(1200,null,'0.20–0.30','120 s/core','120 s/core',null,'180 s','240 s','8.0'),
+  col(1300,null,'0.20–0.30','120 s/core','120 s/core',null,'180 s','240 s','8.0'),
+  col(1400,null,'0.20–0.30','120 s/core','120 s/core',null,'180 s','240 s','8.0'),
+  col(1500,null,'0.20–0.30','120 s/core','120 s/core',null,'180 s','240 s','8.0'),
+  col(1600,null,'0.20–0.30','120 s/core','120 s/core',null,'180 s','240 s','8.0'),
+  col(1700,null,'0.20–0.25','120 s/core','120 s/core',null,'180 s','240 s','8.0'),
+],[
+  row('5.0 – 6.0 mm',false,145,140,0,0,0,0,0,0),
+  row('6.0 – 7.0 mm',false,140,130,120,115,105,100,90,80),
+  row('7.0 – 8.0 mm',false,130,120,115,105,100,90,80,75),
+  row('8.0 – 9.0 mm',false,115,105,100,90,80,75,65,55),
+  row('8.0 – 9.0 mm ★',true,165,155,145,140,130,120,115,105),
+  row('9.0 – 10.0 mm ★',true,145,140,130,120,115,105,100,90),
+  row('10.0 – 11.0 mm ★',true,130,120,115,105,100,90,80,75),
+  row('11.0 – 12.0 mm ★',true,115,105,100,90,80,75,65,55),
+  row('12.0 – 13.0 mm ★',true,105,100,90,80,65,55,50,50),
+  row('13.0 – 14.0 mm ★',true,90,80,75,65,50,40,35,35),
+  row('14.0 – 15.0 mm ★',true,75,65,55,50,35,25,15,15),
+]);
+
+def('pk_j2_2kw','ProKASRO — 2 cores à 6 lamps à 2,000 W (Jumbo Core)','0.20',[
+  col(1000,null,'0.20–0.30','120 s/core','120 s/core',null,'150 s','180 s','8.0'),
+  col(1100,null,'0.20–0.30','120 s/core','120 s/core',null,'150 s','180 s','8.0'),
+  col(1200,null,'0.20–0.30','120 s/core','120 s/core',null,'150 s','180 s','8.0'),
+  col(1300,null,'0.20–0.30','120 s/core','120 s/core',null,'150 s','180 s','8.0'),
+  col(1400,null,'0.20–0.30','120 s/core','120 s/core',null,'150 s','180 s','8.0'),
+  col(1500,null,'0.20–0.30','120 s/core','120 s/core',null,'150 s','180 s','8.0'),
+  col(1600,null,'0.20–0.30','120 s/core','120 s/core',null,'150 s','180 s','8.0'),
+],[
+  row('6.0 – 7.0 mm',false,180,170,160,150,0,0,0),
+  row('7.0 – 8.0 mm',false,170,160,150,140,125,115,0),
+  row('8.0 – 9.0 mm',false,150,140,125,115,105,95,85),
+  row('9.0 – 10.0 mm',false,135,125,115,105,95,85,75),
+  row('10.0 – 11.0 mm',false,125,115,105,95,85,75,65),
+  row('11.0 – 12.0 mm',false,115,105,95,85,75,65,55),
+  row('12.0 – 13.0 mm',false,105,95,85,75,65,55,45),
+  row('13.0 – 14.0 mm',false,95,85,75,65,55,45,35),
+  row('14.0 – 15.0 mm',false,85,75,65,55,45,35,25),
+  row('8.0 – 9.0 mm ★',true,195,180,165,150,135,125,110),
+  row('9.0 – 10.0 mm ★',true,175,165,150,135,125,110,100),
+  row('10.0 – 11.0 mm ★',true,165,150,135,125,110,100,85),
+  row('11.0 – 12.0 mm ★',true,150,135,125,110,100,85,70),
+  row('12.0 – 13.0 mm ★',true,135,125,110,100,85,70,60),
+  row('13.0 – 14.0 mm ★',true,125,110,100,85,70,60,45),
+  row('14.0 – 15.0 mm ★',true,110,100,85,70,60,45,35),
+]);
+
+def('pk_j3_2kw','ProKASRO — 3 cores à 6 lamps à 2,000 W (Jumbo Core)','0.30',[
+  col(1000,null,'0.20–0.30','120 s/core','120 s/core',null,'30 s','60 s','8.0'),
+  col(1100,null,'0.20–0.30','120 s/core','120 s/core',null,'30 s','60 s','8.0'),
+  col(1200,null,'0.20–0.30','120 s/core','120 s/core',null,'30 s','60 s','8.0'),
+  col(1300,null,'0.20–0.30','120 s/core','120 s/core',null,'30 s','60 s','8.0'),
+  col(1400,null,'0.20–0.30','120 s/core','120 s/core',null,'30 s','60 s','8.0'),
+  col(1500,null,'0.20–0.30','120 s/core','120 s/core',null,'30 s','60 s','8.0'),
+  col(1600,null,'0.20–0.30','120 s/core','120 s/core',null,'30 s','60 s','8.0'),
+],[
+  row('6.0 – 7.0 mm',false,270,255,240,225,0,0,0),
+  row('7.0 – 8.0 mm',false,255,240,225,210,190,175,0),
+  row('8.0 – 9.0 mm',false,225,210,190,175,160,145,130),
+  row('9.0 – 10.0 mm',false,205,190,175,160,145,130,115),
+  row('10.0 – 11.0 mm',false,190,175,160,145,130,115,100),
+  row('11.0 – 12.0 mm',false,175,160,145,130,115,100,85),
+  row('12.0 – 13.0 mm',false,160,145,130,115,100,85,70),
+  row('13.0 – 14.0 mm',false,145,130,115,100,85,70,55),
+  row('14.0 – 15.0 mm',false,130,115,100,85,70,55,40),
+  row('8.0 – 9.0 mm ★',true,295,270,250,225,205,190,165),
+  row('9.0 – 10.0 mm ★',true,265,250,225,205,190,165,150),
+  row('10.0 – 11.0 mm ★',true,250,225,205,190,165,150,130),
+  row('11.0 – 12.0 mm ★',true,225,205,190,165,150,130,105),
+  row('12.0 – 13.0 mm ★',true,205,190,165,150,130,105,90),
+  row('13.0 – 14.0 mm ★',true,190,165,150,130,105,90,70),
+  row('14.0 – 15.0 mm ★',true,165,150,130,105,90,70,55),
+]);
+
+// ── REE ────────────────────────────────────────────────────────
+def('ree_1200','REE 2000 — 6 lamps à 1,200 W (Lightchain)','0.25',[
+  col(600,null,'0.30–0.40','60 s/lamp','60 s/lamp',null,'60 s','60 s',null),
+  col(700,null,'0.30–0.40','60 s/lamp','60 s/lamp',null,'60 s','60 s',null),
+  col(800,null,'0.25–0.35','60 s/lamp','60 s/lamp',null,'60 s','60 s',null),
+  col(900,null,'0.25–0.35','60 s/lamp','60 s/lamp',null,'60 s','120 s','7.0'),
+  col(1000,null,'0.20–0.30','60 s/lamp','60 s/lamp',null,'60 s','120 s','7.0'),
+  col(1100,null,'0.20–0.30','60 s/lamp','60 s/lamp',null,'60 s','120 s','7.0'),
+  col(1200,null,'0.20–0.30','60 s/lamp','60 s/lamp',null,'60 s','120 s','7.0'),
+],[
+  row('≤ 4.0 mm',false,65,0,0,0,0,0,0),
+  row('4.0 – 5.0 mm',false,60,60,55,50,0,0,0),
+  row('5.0 – 6.0 mm',false,60,55,50,50,45,45,0),
+  row('6.0 – 7.0 mm',false,55,50,50,45,45,40,40),
+  row('7.0 – 8.0 mm',false,50,45,45,40,40,35,30),
+  row('8.0 – 9.0 mm',false,45,45,40,40,35,30,30),
+  row('8.0 – 9.0 mm ★',true,60,55,50,45,45,40,40),
+  row('9.0 – 10.0 mm ★',true,50,50,45,40,40,35,30),
+  row('10.0 – 11.0 mm ★',true,45,45,40,35,30,30,25),
+  row('11.0 – 12.0 mm ★',true,40,40,35,30,25,25,20),
+  row('12.0 – 13.0 mm ★',true,35,30,30,25,20,15,15),
+  row('13.0 – 14.0 mm ★',true,0,0,25,15,15,10,10),
+  row('14.0 – 15.0 mm ★',true,0,0,20,15,10,10,5),
+]);
+
+def('ree_2000','REE 2000 / REE 4000 — 6 lamps à 2,000 W (Lightchain)','0.25',[
+  col(700,null,'0.30–0.40','60 s/lamp','60 s/lamp',null,'0 s','60 s','7.0'),
+  col(800,null,'0.25–0.35','60 s/lamp','60 s/lamp',null,'0 s','60 s','7.0'),
+  col(900,null,'0.25–0.35','60 s/lamp','60 s/lamp',null,'0 s','60 s','7.0'),
+  col(1000,null,'0.20–0.30','60 s/lamp','60 s/lamp',null,'0 s','60 s','7.0'),
+  col(1100,null,'0.20–0.30','60 s/lamp','60 s/lamp',null,'0 s','60 s','7.0'),
+  col(1200,null,'0.20–0.30','60 s/lamp','60 s/lamp',null,'0 s','60 s','7.0'),
+],[
+  row('4.0 – 5.0 mm',false,120,115,110,0,0,0),
+  row('5.0 – 6.0 mm',false,115,110,105,95,90,0),
+  row('6.0 – 7.0 mm',false,115,105,95,90,85,80),
+  row('7.0 – 8.0 mm',false,95,90,85,80,75,65),
+  row('8.0 – 9.0 mm',false,90,85,80,75,65,60),
+  row('8.0 – 9.0 mm ★',true,125,110,95,90,85,80),
+  row('9.0 – 10.0 mm ★',true,105,95,85,80,75,65),
+  row('10.0 – 11.0 mm ★',true,95,85,75,65,60,55),
+  row('11.0 – 12.0 mm ★',true,90,75,60,55,50,40),
+  row('12.0 – 13.0 mm ★',true,70,60,50,40,35,30),
+  row('13.0 – 14.0 mm ★',true,65,50,35,30,25,20),
+  row('14.0 – 15.0 mm ★',true,50,40,30,25,20,10),
+]);
+
+def('ree_3000','REE 4000 — 6 lamps à 3,000 W (Lightchain)','0.30',[
+  col(800,null,'0.25–0.35','90 s','90 s',null,'60 s','120 s','7.0'),
+  col(900,null,'0.25–0.35','90 s','90 s',null,'60 s','120 s','7.0'),
+  col(1000,null,'0.20–0.30','90 s','90 s',null,'60 s','120 s','7.0'),
+  col(1100,null,'0.20–0.30','90 s','90 s',null,'60 s','120 s','7.0'),
+  col(1200,null,'0.20–0.30','90 s','90 s',null,'60 s','120 s','7.0'),
+  col(1300,null,'0.20–0.30','90 s','90 s',null,'60 s','120 s','7.0'),
+],[
+  row('6.0 – 7.0 mm',false,175,165,155,145,140,130),
+  row('7.0 – 8.0 mm',false,165,155,145,140,130,120),
+  row('8.0 – 9.0 mm',false,150,140,130,120,110,100),
+  row('9.0 – 10.0 mm',false,135,125,115,105,95,85),
+  row('10.0 – 11.0 mm',false,120,110,100,90,80,70),
+  row('11.0 – 12.0 mm',false,105,95,85,75,65,55),
+  row('12.0 – 13.0 mm',false,90,80,70,60,50,40),
+  row('13.0 – 14.0 mm',false,75,65,55,45,35,25),
+  row('14.0 – 15.0 mm',false,60,50,40,30,20,10),
+  row('8.0 – 9.0 mm ★',true,195,180,170,155,145,130),
+  row('9.0 – 10.0 mm ★',true,175,165,150,135,125,110),
+  row('10.0 – 11.0 mm ★',true,155,145,130,115,105,90),
+  row('11.0 – 12.0 mm ★',true,135,125,110,100,85,70),
+  row('12.0 – 13.0 mm ★',true,115,105,90,80,65,50),
+  row('13.0 – 14.0 mm ★',true,100,85,70,60,45,35),
+  row('14.0 – 15.0 mm ★',true,80,65,50,40,25,15),
+]);
+
+def('ree_4000_core','REE 4000 — 6 lamps à 4,000 W (Core)','0.10',[
+  col(1300,null,'0.20–0.30','—','—',null,'270 s','300 s','7.0'),
+  col(1400,null,'0.20–0.30','—','—',null,'270 s','300 s','7.0'),
+  col(1500,null,'0.20–0.30','—','—',null,'270 s','330 s','7.0'),
+  col(1600,null,'0.20–0.30','—','—',null,'270 s','330 s','7.0'),
+  col(1700,null,'0.20–0.25','—','—',null,'330 s','360 s','7.0'),
+  col(1800,null,'0.20–0.25','—','—',null,'330 s','360 s','7.0'),
+],[
+  row('6.0 – 7.0 mm',false,190,0,0,0,0,0),
+  row('7.0 – 8.0 mm',false,175,160,145,0,0,0),
+  row('8.0 – 9.0 mm',false,145,135,120,110,95,90),
+  row('9.0 – 10.0 mm',false,135,120,110,95,85,75),
+  row('10.0 – 11.0 mm',false,120,110,95,85,70,65),
+  row('11.0 – 12.0 mm',false,110,95,85,70,60,50),
+  row('12.0 – 13.0 mm',false,95,85,70,60,45,40),
+  row('13.0 – 14.0 mm',false,85,70,60,45,35,25),
+  row('14.0 – 15.0 mm',false,70,60,45,35,20,15),
+  row('8.0 – 9.0 mm ★',true,190,170,160,140,125,115),
+  row('9.0 – 10.0 mm ★',true,170,160,140,125,110,100),
+  row('10.0 – 11.0 mm ★',true,160,140,125,110,90,85),
+  row('11.0 – 12.0 mm ★',true,140,125,110,90,75,65),
+  row('12.0 – 13.0 mm ★',true,125,110,90,75,60,50),
+  row('13.0 – 14.0 mm ★',true,110,90,75,60,45,35),
+  row('14.0 – 15.0 mm ★',true,90,75,60,45,25,20),
+]);
+
+// ── IBG ────────────────────────────────────────────────────────
+def('ibg_1000s','IBG 2×4×1,000 W — SMALL','0.15',[
+  col(600,null,'0.30–0.40','60 s/core','120 s/core','7.0','240 s','240 s',null),
+  col(700,null,'0.30–0.40','60 s/core','120 s/core','7.0','240 s','240 s',null),
+  col(800,null,'0.25–0.35','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(900,null,'0.25–0.35','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(1000,null,'0.20–0.30','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(1100,null,'0.20–0.30','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(1200,null,'0.20–0.30','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(1300,null,'0.20–0.30','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(1400,null,'0.20–0.30','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+],[
+  row('≤ 4.0 mm',false,130,0,0,0,0,0,0,0,0),
+  row('4.0 – 5.0 mm',false,125,120,110,105,0,0,0,0,0),
+  row('5.0 – 6.0 mm',false,120,110,105,100,95,90,0,0,0),
+  row('6.0 – 7.0 mm',false,110,105,100,95,90,80,75,70,45),
+  row('7.0 – 8.0 mm',false,100,95,90,80,75,70,65,60,35),
+  row('8.0 – 9.0 mm',false,95,90,80,75,70,65,60,55,30),
+  row('8.0 – 9.0 mm ★',true,120,110,105,95,90,80,75,70,40),
+  row('9.0 – 10.0 mm ★',true,105,100,95,80,75,70,65,60,35),
+  row('10.0 – 11.0 mm ★',true,95,90,80,70,65,60,55,45,30),
+  row('11.0 – 12.0 mm ★',true,80,75,70,60,55,45,40,35,25),
+  row('12.0 – 13.0 mm ★',true,70,65,60,45,40,35,30,25,10),
+  row('13.0 – 14.0 mm ★',true,0,0,45,35,30,25,20,10,0),
+  row('14.0 – 15.0 mm ★',true,0,0,40,30,25,20,10,0,0),
+]);
+
+def('ibg_1500s','IBG 2×4×1,500 W — SMALL','0.15',[
+  col(600,null,'0.30–0.40','60 s/core','120 s/core','7.0','180 s','180 s',null),
+  col(700,null,'0.30–0.40','60 s/core','120 s/core','7.0','180 s','180 s',null),
+  col(800,null,'0.25–0.35','120 s/core','120 s/core',null,'180 s','240 s','7.0'),
+  col(900,null,'0.25–0.35','120 s/core','120 s/core',null,'180 s','240 s','7.0'),
+  col(1000,null,'0.20–0.30','120 s/core','120 s/core',null,'180 s','240 s','7.0'),
+  col(1100,null,'0.20–0.30','120 s/core','120 s/core',null,'180 s','240 s','7.0'),
+  col(1200,null,'0.20–0.30','120 s/core','120 s/core',null,'180 s','240 s','7.0'),
+  col(1300,null,'0.20–0.30','120 s/core','120 s/core',null,'180 s','240 s','7.0'),
+  col(1400,null,'0.20–0.30','120 s/core','120 s/core',null,'180 s','240 s','7.0'),
+],[
+  row('≤ 4.0 mm',false,160,0,0,0,0,0,0,0,0),
+  row('4.0 – 5.0 mm',false,155,145,140,130,0,0,0,0,0),
+  row('5.0 – 6.0 mm',false,145,140,130,125,115,110,0,0,0),
+  row('6.0 – 7.0 mm',false,140,130,125,115,110,100,95,85,60),
+  row('7.0 – 8.0 mm',false,125,115,110,100,95,85,80,75,45),
+  row('8.0 – 9.0 mm',false,115,110,100,95,85,80,75,65,35),
+  row('8.0 – 9.0 mm ★',true,145,140,130,115,110,100,95,85,50),
+  row('9.0 – 10.0 mm ★',true,130,125,115,100,95,85,80,75,45),
+  row('10.0 – 11.0 mm ★',true,115,110,100,85,80,75,65,60,35),
+  row('11.0 – 12.0 mm ★',true,100,95,85,75,65,60,50,45,30),
+  row('12.0 – 13.0 mm ★',true,85,80,75,60,50,45,35,30,15),
+  row('13.0 – 14.0 mm ★',true,0,0,60,45,35,30,20,15,0),
+  row('14.0 – 15.0 mm ★',true,0,0,50,35,30,20,15,0,0),
+]);
+
+def('ibg_1200b','IBG 2×4×1,200 W — BIG','0.15',[
+  col(600,null,'0.30–0.40','60 s/core','120 s/core','7.0','240 s','240 s',null),
+  col(700,null,'0.30–0.40','60 s/core','120 s/core','7.0','240 s','240 s',null),
+  col(800,null,'0.25–0.35','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(900,null,'0.25–0.35','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(1000,null,'0.20–0.30','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(1100,null,'0.20–0.30','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(1200,null,'0.20–0.30','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(1300,null,'0.20–0.30','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+  col(1400,null,'0.20–0.30','120 s/core','120 s/core',null,'240 s','300 s','7.0'),
+],[
+  row('≤ 4.0 mm',false,160,0,0,0,0,0,0,0,0),
+  row('4.0 – 5.0 mm',false,155,145,140,130,0,0,0,0,0),
+  row('5.0 – 6.0 mm',false,145,140,130,125,115,110,0,0,0),
+  row('6.0 – 7.0 mm',false,140,130,125,115,110,100,95,85,60),
+  row('7.0 – 8.0 mm',false,125,115,110,100,95,85,80,75,45),
+  row('8.0 – 9.0 mm',false,115,110,100,95,85,80,75,65,35),
+  row('8.0 – 9.0 mm ★',true,145,140,130,115,110,100,95,85,50),
+  row('9.0 – 10.0 mm ★',true,130,125,115,100,95,85,80,75,45),
+  row('10.0 – 11.0 mm ★',true,115,110,100,85,80,75,65,60,35),
+  row('11.0 – 12.0 mm ★',true,100,95,85,75,65,60,50,45,30),
+  row('12.0 – 13.0 mm ★',true,85,80,75,60,50,45,35,30,15),
+  row('13.0 – 14.0 mm ★',true,0,0,60,45,35,30,20,15,0),
+  row('14.0 – 15.0 mm ★',true,0,0,50,35,30,20,15,0,0),
+]);
+
+def('ibg_1500b','IBG 2×4×1,500 W — BIG','0.15',[
+  col(600,null,'0.30–0.40','60 s/core','120 s/core','7.0','180 s','180 s',null),
+  col(700,null,'0.30–0.40','60 s/core','120 s/core','7.0','180 s','180 s',null),
+  col(800,null,'0.25–0.35','120 s/core','120 s/core',null,'180 s','240 s','7.0'),
+  col(900,null,'0.25–0.35','120 s/core','120 s/core',null,'180 s','240 s','7.0'),
+  col(1000,null,'0.20–0.30','120 s/core','120 s/core',null,'180 s','240 s','7.0'),
+  col(1100,null,'0.20–0.30','120 s/core','120 s/core',null,'180 s','240 s','7.0'),
+  col(1200,null,'0.20–0.30','120 s/core','120 s/core',null,'180 s','240 s','7.0'),
+  col(1300,null,'0.20–0.30','120 s/core','120 s/core',null,'180 s','240 s','7.0'),
+  col(1400,null,'0.20–0.30','120 s/core','120 s/core',null,'180 s','240 s','7.0'),
+],[
+  row('≤ 4.0 mm',false,170,0,0,0,0,0,0,0,0),
+  row('4.0 – 5.0 mm',false,160,155,145,140,0,0,0,0,0),
+  row('5.0 – 6.0 mm',false,155,145,140,130,125,115,0,0,0),
+  row('6.0 – 7.0 mm',false,145,140,130,125,115,110,100,95,60),
+  row('7.0 – 8.0 mm',false,130,125,115,110,100,95,85,75,45),
+  row('8.0 – 9.0 mm',false,125,115,110,100,95,85,75,70,40),
+  row('8.0 – 9.0 mm ★',true,155,145,140,125,115,110,100,95,55),
+  row('9.0 – 10.0 mm ★',true,140,130,125,110,100,95,85,75,45),
+  row('10.0 – 11.0 mm ★',true,125,115,110,95,85,75,70,60,40),
+  row('11.0 – 12.0 mm ★',true,110,100,95,75,70,60,55,45,30),
+  row('12.0 – 13.0 mm ★',true,95,85,75,60,55,45,40,30,15),
+  row('13.0 – 14.0 mm ★',true,0,0,60,45,40,30,25,15,0),
+  row('14.0 – 15.0 mm ★',true,0,0,55,40,30,25,15,0,0),
+]);
+
+def('ibg_2000b','IBG 2×4×2,000 W — BIG','0.20',[
+  col(1000,null,'0.20–0.30','120 s/core','150 s/core','5.0','120 s','180 s','7.0'),
+  col(1100,null,'0.20–0.30','120 s/core','150 s/core','5.0','120 s','180 s','7.0'),
+  col(1200,null,'0.20–0.30','120 s/core','150 s/core','5.0','120 s','180 s','7.0'),
+  col(1300,null,'0.20–0.30','150 s/core','150 s/core',null,'120 s','240 s','7.0'),
+  col(1400,null,'0.20–0.30','150 s/core','150 s/core',null,'150 s','240 s','7.0'),
+  col(1500,null,'0.20–0.30','150 s/core','150 s/core',null,'150 s','240 s','7.0'),
+  col(1600,null,'0.20–0.30','150 s/core','150 s/core',null,'150 s','240 s','7.0'),
+  col(1700,null,'0.20–0.30','150 s/core','150 s/core',null,'150 s','240 s','7.0'),
+  col(1800,null,'0.20–0.30','150 s/core','150 s/core',null,'150 s','240 s','7.0'),
+],[
+  row('5.0 – 6.0 mm',false,135,125,0,0,0,0,0,0,0),
+  row('6.0 – 7.0 mm',false,125,115,110,100,80,60,40,30,20),
+  row('7.0 – 8.0 mm',false,110,100,90,85,65,45,20,15,5),
+  row('8.0 – 9.0 mm',false,100,90,85,75,55,35,15,5,0),
+  row('8.0 – 9.0 mm ★',true,125,115,105,100,90,80,70,60,50),
+  row('9.0 – 10.0 mm ★',true,115,105,95,85,75,65,55,45,35),
+  row('10.0 – 11.0 mm ★',true,105,95,85,75,65,55,45,35,25),
+  row('11.0 – 12.0 mm ★',true,95,85,75,65,55,45,35,25,15),
+  row('12.0 – 13.0 mm ★',true,85,75,65,55,45,35,25,15,5),
+  row('13.0 – 14.0 mm ★',true,75,65,55,45,35,25,15,5,0),
+  row('14.0 – 15.0 mm ★',true,65,55,45,35,25,15,5,0,0),
+]);
+
+// =============================================================
+// UI LOGIC
+// =============================================================
+const CONFIGS_BY_GROUP={
+  lc400:[
+    {id:'lc4',  label:'4 lamps à 400–600 (650) W'},
+    {id:'lc8',  label:'8 lamps à 400–600 (650) W'},
+    {id:'lc9',  label:'9 lamps à 400–600 (650) W'},
+    {id:'lc10', label:'10 lamps à 400–600 (650) W'},
+    {id:'lc12', label:'12 lamps à 400–600 (650) W'},
+    {id:'lc15', label:'15 lamps à 400–600 (650) W'},
+  ],
+  lc1kw:[
+    {id:'lc8_1kw', label:'8 lamps à 1,000 W'},
+    {id:'lc9_1kw', label:'9 lamps à 1,000 W'},
+    {id:'lc4_1kw', label:'4 lamps à 1,000 W'},
+  ],
+  ims:[
+    {id:'ims_4e', label:'4 elements à 3 lamps à 400/650 W'},
+    {id:'ims_3e', label:'3 elements à 4 lamps à 1,000 W'},
+    {id:'ims_2c', label:'2 cores à 6 lamps à 1,000 W'},
+  ],
+  prokasro:[
+    {id:'pk2_lq56', label:'2 cores à 4 lamps à 1,000 W (Double Core LQ56)'},
+    {id:'pk3_lq56', label:'3 cores à 4 lamps à 1,000 W (Triple Core LQ56)'},
+    {id:'pk4_lq56', label:'4 cores à 4 lamps à 1,000 W (Quattro Core LQ56)'},
+    {id:'pk2_lq58', label:'2 cores à 4 lamps à 1,000 W (Double Core LQ58)'},
+    {id:'pk3_lq58', label:'3 cores à 4 lamps à 1,000 W (Triple Core LQ58)'},
+    {id:'pk4_lq58', label:'4 cores à 4 lamps à 1,000 W (Quattro Core LQ58)'},
+    {id:'pk2_2kw',  label:'2 cores à 4 lamps à 2,000 W (Double Core LQ58)'},
+    {id:'pk3_2kw',  label:'3 cores à 4 lamps à 2,000 W (Triple Core LQ58)'},
+    {id:'pk_j2',    label:'2 cores à 6 lamps à 1,000 W (Jumbo Core)'},
+    {id:'pk_j3',    label:'3 cores à 6 lamps à 1,000 W (Jumbo Core)'},
+    {id:'pk_j2_2kw',label:'2 cores à 6 lamps à 2,000 W (Jumbo Core)'},
+    {id:'pk_j3_2kw',label:'3 cores à 6 lamps à 2,000 W (Jumbo Core)'},
+  ],
+  ree:[
+    {id:'ree_1200',      label:'REE 2000 — 6 lamps à 1,200 W'},
+    {id:'ree_2000',      label:'REE 2000 / REE 4000 — 6 lamps à 2,000 W'},
+    {id:'ree_3000',      label:'REE 4000 — 6 lamps à 3,000 W'},
+    {id:'ree_4000_core', label:'REE 4000 — 6 lamps à 4,000 W (Core)'},
+  ],
+  ibg:[
+    {id:'ibg_1000s', label:'2×4×1,000 W — SMALL'},
+    {id:'ibg_1500s', label:'2×4×1,500 W — SMALL'},
+    {id:'ibg_1200b', label:'2×4×1,200 W — BIG'},
+    {id:'ibg_1500b', label:'2×4×1,500 W — BIG'},
+    {id:'ibg_2000b', label:'2×4×2,000 W — BIG'},
+  ]
+};
+
+let currentCfg=null, selectedColIdx=-1, selectedRowIdx=-1;
+
+const selGroup=document.getElementById('sel-group');
+const selConfig=document.getElementById('sel-config');
+const selDN=document.getElementById('sel-dn');
+const selWatt=document.getElementById('sel-watt');
+const selWT=document.getElementById('sel-wt');
+const togP=document.getElementById('tog-peroxide');
+const paramsCard=document.getElementById('params-card');
+const resultCard=document.getElementById('result-card');
+const tableCard=document.getElementById('table-card');
+const wattField=document.getElementById('watt-field');
+
+selGroup.addEventListener('change',()=>{
+  const g=selGroup.value;
+  selConfig.innerHTML='<option value="">— Select configuration —</option>';
+  selConfig.disabled=!g;
+  if(g&&CONFIGS_BY_GROUP[g]){
+    CONFIGS_BY_GROUP[g].forEach(c=>{
+      const o=document.createElement('option');
+      o.value=c.id; o.textContent=c.label;
+      selConfig.appendChild(o);
+    });
+  }
+  resetResults();
+});
+
+selConfig.addEventListener('change',()=>{
+  const id=selConfig.value;
+  currentCfg=id?C[id]:null;
+  resetResults();
+  if(!currentCfg) return;
+  paramsCard.classList.remove('hidden');
+  populateDN();
+  renderTable();
+  document.getElementById('tbl-config-name').textContent=currentCfg.label;
+  tableCard.classList.remove('hidden');
+});
+
+function resetResults(){
+  resultCard.classList.add('hidden');
+  selectedColIdx=-1; selectedRowIdx=-1;
+  matchedDNValue=null;
+  selDN.value='';
+  selDN.disabled=true;
+  selDN.classList.remove('dn-input-error');
+  document.getElementById('dn-hint').classList.add('hidden');
+  document.getElementById('dn-hint').classList.remove('dn-hint-error');
+  selWatt.innerHTML='<option value="">— Select DN first —</option>';
+  selWatt.disabled=true;
+  selWT.innerHTML='<option value="">— Select DN first —</option>';
+  selWT.disabled=true;
+  togP.checked=false;
+  if(!currentCfg){
+    paramsCard.classList.add('hidden');
+    tableCard.classList.add('hidden');
+  }
+}
+
+let matchedDNValue=null;
+
+// Returns the table DN that a typed value maps to using midpoint boundaries
+function findMatchedDN(typedDN,cfg){
+  const dns=[...new Set(cfg.cols.map(c=>c.dn))].sort((a,b)=>a-b);
+  let matched=dns[0];
+  for(let i=1;i<dns.length;i++){
+    const mid=(dns[i-1]+dns[i])/2;
+    if(typedDN>=mid) matched=dns[i];
+  }
+  return matched;
+}
+
+function populateDN(){
+  if(!currentCfg) return;
+  const dns=[...new Set(currentCfg.cols.map(c=>c.dn))].sort((a,b)=>a-b);
+  selDN.min=dns[0];
+  selDN.max=dns[dns.length-1];
+  selDN.placeholder=`Enter diameter (e.g. ${dns[Math.floor(dns.length/2)]})`;
+  selDN.value='';
+  selDN.disabled=false;
+  document.getElementById('dn-hint').classList.add('hidden');
+  matchedDNValue=null;
+}
+
+selDN.addEventListener('input',()=>{
+  const typed=parseInt(selDN.value);
+  const hint=document.getElementById('dn-hint');
+  const matched=document.getElementById('dn-matched');
+  selWatt.disabled=true;
+  selWT.disabled=true;
+  selWT.innerHTML='<option value="">— Select —</option>';
+  selectedColIdx=-1; selectedRowIdx=-1;
+  matchedDNValue=null;
+  resultCard.classList.add('hidden');
+  hint.classList.add('hidden');
+  hint.classList.remove('dn-hint-error');
+  selDN.classList.remove('dn-input-error');
+  if(!selDN.value||isNaN(typed)||!currentCfg) return;
+
+  // Reject values below minimum DN
+  if(typed<150){
+    selDN.classList.add('dn-input-error');
+    hint.textContent='⚠ Minimum valid diameter is DN 150';
+    hint.classList.add('dn-hint-error');
+    hint.classList.remove('hidden');
+    return;
+  }
+
+  // Find the matched DN using midpoint logic
+  matchedDNValue=findMatchedDN(typed,currentCfg);
+  hint.innerHTML=`↳ Using table data for <strong>DN ${matchedDNValue}</strong>`;
+  hint.classList.remove('hidden');
+
+  // find matching cols for the resolved DN
+  const matchCols=currentCfg.cols.filter(c=>c.dn===matchedDNValue);
+  const watts=[...new Set(matchCols.map(c=>c.watt).filter(w=>w!==null))];
+  if(watts.length>1){
+    selWatt.innerHTML='<option value="">— Select wattage —</option>';
+    watts.forEach(w=>{
+      const o=document.createElement('option');
+      o.value=w; o.textContent=`${w} W`;
+      selWatt.appendChild(o);
+    });
+    selWatt.disabled=false;
+    wattField.style.display='';
+  } else {
+    selWatt.innerHTML='<option value="">—</option>';
+    selWatt.disabled=true;
+    if(watts.length===0) wattField.style.display='none';
+    else {
+      selWatt.innerHTML=`<option value="${watts[0]}">${watts[0]} W (fixed)</option>`;
+      wattField.style.display='';
+    }
+    const colIdx=currentCfg.cols.findIndex(c=>c.dn===matchedDNValue);
+    if(colIdx>=0){ selectedColIdx=colIdx; populateWT(); }
+  }
+});
+
+selWatt.addEventListener('change',()=>{
+  const watt=selWatt.value?parseInt(selWatt.value):null;
+  selectedColIdx=-1;
+  if(!currentCfg||!matchedDNValue) return;
+  const idx=currentCfg.cols.findIndex(c=>c.dn===matchedDNValue&&(watt===null||c.watt===watt));
+  if(idx>=0){ selectedColIdx=idx; populateWT(); }
+});
+
+function populateWT(){
+  if(!currentCfg||selectedColIdx<0) return;
+  const useP=togP.checked;
+  const rows=currentCfg.rows.filter(r=>r.p===useP);
+  selWT.innerHTML='<option value="">— Select wall thickness —</option>';
+  rows.forEach((r,i)=>{
+    const origIdx=currentCfg.rows.indexOf(r);
+    if(r.speeds[selectedColIdx]>0){
+      const o=document.createElement('option');
+      o.value=origIdx; o.textContent=r.label.replace(' ★','');
+      selWT.appendChild(o);
+    }
+  });
+  selWT.disabled=false;
+  selectedRowIdx=-1;
+  resultCard.classList.add('hidden');
+}
+
+togP.addEventListener('change',()=>{
+  selectedRowIdx=-1;
+  resultCard.classList.add('hidden');
+  if(selectedColIdx>=0) populateWT();
+  renderTable();
+});
+
+selWT.addEventListener('change',()=>{
+  selectedRowIdx=selWT.value!==''?parseInt(selWT.value):-1;
+  if(selectedRowIdx>=0&&selectedColIdx>=0) showResult();
+  else resultCard.classList.add('hidden');
+  renderTable();
+});
+
+function getTimingStr(col,wt){
+  if(!col) return '—';
+  let wtVal=parseFloat(wt);
+  // wt label like "5.0 – 6.0 mm" → mid value
+  if(wt.includes('–')){ const parts=wt.split('–'); wtVal=parseFloat(parts[0].trim()); }
+  return wtVal;
+}
+
+function showResult(){
+  const cfg=currentCfg;
+  const c=cfg.cols[selectedColIdx];
+  const r=cfg.rows[selectedRowIdx];
+  const speed=r.speeds[selectedColIdx];
+  if(speed<=0){ resultCard.classList.add('hidden'); return; }
+
+  // Determine thin/thick based on wall thickness
+  let ignition='—', waiting='—';
+  if(c){
+    const wtLabel=r.label.replace(' ★','');
+    let wtNum=parseFloat(wtLabel);
+    if(wtLabel.includes('–')){ const p=wtLabel.split('–'); wtNum=parseFloat(p[0].trim()); }
+    const sp=c.ignitionSplit?parseFloat(c.ignitionSplit):null;
+    ignition=(sp===null||wtNum<sp)?c.iT:c.iTk;
+    const wsp=c.waitingSplit?parseFloat(c.waitingSplit):null;
+    waiting=(wsp===null||wtNum<wsp)?c.wT:c.wTk;
+  }
+
+  document.getElementById('res-title').textContent=`DN ${c.dn}${c.watt?' · '+c.watt+' W':''} · ${r.label.replace(' ★','')}${r.p?' · ★ Peroxide':''}`;
+  document.getElementById('res-pressure').textContent=c.pressure||'—';
+  document.getElementById('res-ignition').textContent=ignition;
+  document.getElementById('res-waiting').textContent=waiting;
+  document.getElementById('res-vstart').textContent=cfg.vstart;
+  document.getElementById('res-speed').textContent=speed;
+
+  resultCard.classList.remove('hidden');
+  renderTable();
+}
+
+function renderTable(){
+  if(!currentCfg) return;
+  const cfg=currentCfg;
+  const useP=togP.checked;
+  const wrap=document.getElementById('table-wrap');
+
+  // Build column headers
+  // Group cols by DN
+  let html='<table><thead><tr class=""><th>Wall Thickness</th>';
+  cfg.cols.forEach((c,i)=>{
+    const cls=i===selectedColIdx?' class="sel-col"':'';
+    html+=`<th${cls}>DN ${c.dn}${c.watt?`<br><small style="font-weight:400;font-size:0.6rem;opacity:.7">${c.watt} W</small>`:''}</th>`;
+  });
+  html+='</tr>';
+  // Pressure row
+  html+='<tr class="pressure-row"><th>Working Pressure (bar)</th>';
+  cfg.cols.forEach((c,i)=>{
+    const cls=i===selectedColIdx?' class="sel-col"':'';
+    html+=`<td${cls}>${c.pressure}</td>`;
+  });
+  html+='</tr></thead><tbody>';
+
+  // Data rows
+  let lastWasStd=true;
+  cfg.rows.forEach((r,ri)=>{
+    if(r.p&&lastWasStd){
+      // Insert peroxide section header
+      html+='<tr class="sec-hdr"><th colspan="'+(cfg.cols.length+1)+'">★ WITH PEROXIDE (Combination Curing) — Speeds in cm/min</th></tr>';
+      lastWasStd=false;
+    }
+    if(!r.p) lastWasStd=true;
+
+    // Filter: only show the current peroxide mode rows if desired
+    // Always show all rows in the table but dim non-matching
+    const isSelectedRow=ri===selectedRowIdx;
+    const dimRow=(useP&&!r.p)||(!useP&&r.p);
+    const rowCls=isSelectedRow?' class="sel-row"':(dimRow?' style="opacity:0.35"':'');
+    html+=`<tr${rowCls}><td>${r.label.replace(' ★','')}</td>`;
+    r.speeds.forEach((s,ci)=>{
+      const cls=(ci===selectedColIdx)?' class="sel-col v"':' class="v"';
+      html+=s>0?`<td${cls}>${s}</td>`:`<td class="na${ci===selectedColIdx?' sel-col':''}">—</td>`;
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  wrap.innerHTML=html;
+}
+</script>
+</body>
+</html>

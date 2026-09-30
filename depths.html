@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0A113A">
+<title>Liner Safe Depth Calculator — Nuflow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   NUFLOW RELINE APP — shared tool theme (mirrors index.html)
+   ============================================================ */
+:root{
+  --ink:#060914; --nublue-dark:#0A113A; --nublue:#252D65;
+  --blueliner:#4DC8ED; --nugreen:#58A345; --nugrey:#ECEDED;
+  --pressureline:#F7941D; --redline:#F0534E; --nuvline:#893DFF;
+  --nupine:#0A6242; --htar:#802673; --nucoat:#C473AD; --sumoline:#727D84;
+
+  --surface-1:rgba(255,255,255,.045); --surface-2:rgba(255,255,255,.08);
+  --stroke:rgba(255,255,255,.09); --stroke-2:rgba(255,255,255,.16);
+  --text-hi:#F4F6F8; --text-mid:rgba(236,237,237,.72); --text-low:rgba(236,237,237,.45);
+
+  --ok:#8ed07c; --bad:#ff8a86; --warn:#FFB25B;
+
+  --display:'Montserrat',-apple-system,'Segoe UI',Roboto,sans-serif;
+  --body:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --r-lg:22px; --r-md:16px; --r-sm:12px;
+  --spring:cubic-bezier(.34,1.56,.64,1);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--ink)}
+body{
+  font-family:var(--body);color:var(--text-hi);min-height:100vh;
+  -webkit-font-smoothing:antialiased;background:var(--ink);
+  padding:16px 16px calc(32px + env(safe-area-inset-bottom,0px));
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(120% 50% at 85% -10%, rgba(77,200,237,.10), transparent 55%),
+    radial-gradient(110% 45% at 0% 105%, rgba(88,163,69,.07), transparent 55%),
+    linear-gradient(180deg, var(--nublue-dark) 0%, var(--ink) 60%);
+}
+.wrap{max-width:560px;margin:0 auto}
+.hidden{display:none!important}
+
+.stagger > *{opacity:0;transform:translateY(12px);animation:riseIn .5s var(--spring) forwards;animation-delay:calc(var(--i,0)*70ms)}
+@keyframes riseIn{to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.stagger > *,.result.visible{animation:none!important;opacity:1!important;transform:none!important}}
+
+/* HERO */
+.hero{
+  position:relative;overflow:hidden;border-radius:var(--r-lg);padding:22px 20px 20px;
+  background:
+    radial-gradient(120% 120% at 100% 0%, var(--tool-glow), transparent 50%),
+    radial-gradient(100% 100% at 0% 100%, rgba(77,200,237,.10), transparent 55%),
+    linear-gradient(160deg, var(--nublue) 0%, var(--nublue-dark) 58%, #080d29 100%);
+  border:1px solid var(--stroke-2);box-shadow:0 18px 44px rgba(0,0,0,.42);
+}
+.hero::after{
+  content:'';position:absolute;width:200px;height:200px;border-radius:50%;
+  background:radial-gradient(circle, var(--tool-glow), transparent 65%);
+  top:-90px;right:-50px;animation:drift 9s ease-in-out infinite alternate;pointer-events:none;
+}
+@keyframes drift{to{transform:translate(-26px,20px) scale(1.15)}}
+.hero-ic{
+  width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;
+  background:var(--tool);color:#06121c;margin-bottom:14px;box-shadow:0 8px 20px var(--tool-glow);
+}
+.eyebrow{font-family:var(--display);font-weight:700;font-size:10.5px;letter-spacing:.32em;color:var(--blueliner);text-transform:uppercase;margin-bottom:8px}
+.hero h1{font-family:var(--display);font-weight:900;font-size:27px;letter-spacing:-.8px;line-height:1.08}
+.hero p{margin-top:8px;font-size:13.5px;color:var(--text-mid);line-height:1.5;max-width:36ch}
+.flow-line{margin-top:16px;height:3px;border-radius:3px;width:64px;background:linear-gradient(90deg,var(--blueliner),var(--nugreen));box-shadow:0 0 12px rgba(77,200,237,.65)}
+
+/* SECTIONS + CARDS */
+.sect{display:flex;align-items:baseline;justify-content:space-between;margin:22px 2px 10px}
+.sect h2{font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:-.2px}
+.sect .hint{font-size:11.5px;color:var(--text-low);font-weight:600;letter-spacing:.03em}
+.card{border-radius:var(--r-lg);background:var(--surface-1);border:1px solid var(--stroke);box-shadow:0 14px 34px rgba(0,0,0,.35);overflow:hidden}
+.card-pad{padding:18px 16px}
+
+/* INPUTS */
+.field + .field{margin-top:16px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row2 .field + .field{margin-top:0}
+.row2 + .field,.field + .row2{margin-top:16px}
+.label{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.02em;color:var(--text-hi);margin-bottom:8px}
+.label small{font-family:var(--body);font-weight:600;font-size:11px;color:var(--text-low);letter-spacing:.02em;text-align:right}
+.label.dim{opacity:.4}
+.select{position:relative}
+.select::after{content:'';position:absolute;right:16px;top:50%;width:8px;height:8px;margin-top:-6px;border-right:2px solid var(--text-mid);border-bottom:2px solid var(--text-mid);transform:rotate(45deg);pointer-events:none}
+select,input[type=number]{
+  width:100%;appearance:none;-webkit-appearance:none;
+  font-family:var(--body);font-size:16px;font-weight:600;color:var(--text-hi);
+  background:rgba(255,255,255,.06);border:1px solid var(--stroke-2);border-radius:var(--r-sm);
+  padding:14px 42px 14px 14px;cursor:pointer;transition:border-color .2s,box-shadow .2s,opacity .2s;
+}
+input[type=number]{padding:14px;cursor:text;-moz-appearance:textfield}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input::placeholder{color:var(--text-low);font-weight:500}
+select option{background:#0b1024;color:var(--text-hi)}
+select:focus,input:focus{outline:none;border-color:var(--blueliner);box-shadow:0 0 0 3px rgba(77,200,237,.2)}
+select:disabled,input:disabled{opacity:.4;cursor:not-allowed}
+.unit-input{position:relative}
+.unit-input input{padding-right:46px}
+.unit-input span{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-family:var(--display);font-weight:700;font-size:12px;color:var(--text-low);pointer-events:none}
+.hint-line{font-size:11.5px;color:var(--text-low);margin-top:7px;line-height:1.45}
+.hint-line strong{color:var(--blueliner)}
+.hint-line.err{color:var(--bad)}
+input.err{border-color:rgba(240,83,78,.6);box-shadow:0 0 0 3px rgba(240,83,78,.15)}
+
+/* Chips */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{
+  font-family:var(--display);font-weight:800;font-size:13px;letter-spacing:-.2px;color:var(--text-mid);
+  background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:11px;
+  padding:10px 12px;cursor:pointer;min-width:52px;text-align:center;
+  transition:transform .15s ease,background .2s,color .2s,border-color .2s,box-shadow .2s;
+}
+.chip:active{transform:scale(.93)}
+.chip.on{color:#06121c;background:var(--blueliner);border-color:var(--blueliner);box-shadow:0 6px 16px rgba(77,200,237,.35)}
+.chip:disabled{opacity:.35;cursor:not-allowed}
+
+/* Segmented */
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:4px;background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:14px}
+.seg button{font-family:var(--display);font-weight:700;font-size:12px;line-height:1.2;color:var(--text-mid);background:transparent;border:0;border-radius:10px;padding:10px 4px;cursor:pointer;transition:background .2s,color .2s}
+.seg button small{display:block;font-family:var(--body);font-size:10.5px;font-weight:600;opacity:.7;margin-top:2px}
+.seg button.on{background:var(--surface-2);color:var(--blueliner);box-shadow:inset 0 0 0 1px var(--stroke-2)}
+.seg button:disabled{opacity:.35;cursor:not-allowed}
+
+/* Toggle */
+.toggle-row{display:flex;align-items:center;gap:12px;margin-top:16px;padding:12px 13px;border-radius:var(--r-sm);background:rgba(255,255,255,.04);border:1px solid var(--stroke);cursor:pointer}
+.toggle-row b{flex:1;font-family:var(--display);font-weight:700;font-size:13px}
+.toggle-row b small{display:block;font-family:var(--body);font-weight:500;font-size:11.5px;color:var(--text-low);margin-top:2px}
+.toggle{position:relative;flex:none;width:46px;height:28px}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle .knob{position:absolute;inset:0;border-radius:20px;background:rgba(255,255,255,.14);transition:background .2s}
+.toggle .knob::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);transition:transform .25s var(--spring)}
+.toggle input:checked + .knob{background:var(--nugreen)}
+.toggle input:checked + .knob::after{transform:translateX(18px)}
+
+/* RESULT */
+.result{
+  display:none;margin-top:14px;position:relative;overflow:hidden;border-radius:var(--r-lg);padding:18px 16px 16px;
+  background:
+    radial-gradient(120% 120% at 100% 0%, rgba(77,200,237,.16), transparent 50%),
+    radial-gradient(100% 100% at 0% 100%, rgba(88,163,69,.12), transparent 55%),
+    linear-gradient(160deg, var(--nublue) 0%, var(--nublue-dark) 60%, #080d29 100%);
+  border:1px solid var(--stroke-2);box-shadow:0 18px 44px rgba(0,0,0,.42);
+}
+.result.visible{display:block;animation:riseIn .45s var(--spring) both;opacity:0;transform:translateY(12px)}
+.result-desc{font-family:var(--display);font-weight:800;font-size:16px;letter-spacing:-.2px;line-height:1.25}
+.badge{display:inline-flex;align-items:center;gap:6px;margin:10px 0 14px;font-family:var(--display);font-weight:700;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--blueliner);background:rgba(77,200,237,.12);border:1px solid rgba(77,200,237,.3);border-radius:20px;padding:5px 11px}
+.badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}
+.badge.ok{color:var(--ok);background:rgba(88,163,69,.12);border-color:rgba(88,163,69,.35)}
+.badge.bad{color:var(--bad);background:rgba(240,83,78,.1);border-color:rgba(240,83,78,.3)}
+.badge.warn{color:var(--warn);background:rgba(247,148,29,.1);border-color:rgba(247,148,29,.3)}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.metrics.three{grid-template-columns:repeat(3,1fr)}
+.metrics + .metrics{margin-top:10px}
+.metric{background:rgba(255,255,255,.06);border:1px solid var(--stroke);border-radius:var(--r-md);padding:14px 10px;text-align:center;min-width:0}
+.metric.wide{grid-column:1/-1}
+.metric-label{font-family:var(--display);font-weight:700;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-low);margin-bottom:6px;line-height:1.35}
+.metric-value{font-family:var(--display);font-weight:900;font-size:30px;letter-spacing:-1px;line-height:1.05;overflow-wrap:anywhere}
+.metric-value.sm{font-size:20px;letter-spacing:-.4px}
+.metric-sub{font-size:12px;font-weight:600;color:var(--text-mid);margin-top:5px}
+.metric.hero-m{background:linear-gradient(135deg, rgba(77,200,237,.20), rgba(77,200,237,.06));border-color:rgba(77,200,237,.4)}
+.metric.hero-m .metric-label{color:var(--blueliner)}
+.metric.hero-m .metric-value{color:var(--blueliner);font-size:40px}
+.c-blue{color:var(--blueliner)} .c-green{color:var(--ok)} .c-warn{color:var(--warn)} .c-bad{color:var(--bad)}
+
+.note{display:flex;gap:10px;margin-top:12px;padding:12px 13px;border-radius:var(--r-sm);background:rgba(77,200,237,.08);border:1px solid rgba(77,200,237,.22);font-size:12.5px;color:var(--text-mid);line-height:1.5}
+.note b{display:block;color:var(--blueliner);font-family:var(--display);font-weight:700;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.note.warn{background:rgba(247,148,29,.08);border-color:rgba(247,148,29,.28)}
+.note.warn b{color:var(--warn)}
+.note svg{flex:none;margin-top:1px}
+.disclaimer{margin-top:14px;padding-top:12px;border-top:1px solid var(--stroke);font-size:11.5px;color:var(--text-low);line-height:1.55}
+
+/* TABLE */
+.tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px 14px;text-align:center}
+thead th{font-family:var(--display);font-weight:700;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-low);background:rgba(255,255,255,.03);border-bottom:1px solid var(--stroke)}
+th:first-child,td:first-child{text-align:left}
+tbody tr{border-bottom:1px solid var(--stroke);transition:background .15s}
+tbody tr:last-child{border-bottom:0}
+tbody td{font-size:14px;font-weight:600;color:var(--text-hi)}
+tbody td:first-child{font-family:var(--display);font-weight:800;font-size:13.5px;color:var(--text-mid)}
+td.na{color:var(--text-low);font-weight:500}
+tr.clickable{cursor:pointer}
+tr.clickable:active{background:rgba(255,255,255,.04)}
+tr.active{background:linear-gradient(90deg, rgba(77,200,237,.16), rgba(77,200,237,.04))}
+tr.active td:first-child{color:var(--blueliner);box-shadow:inset 3px 0 0 var(--blueliner)}
+tr.active td{font-weight:800}
+tr.group th,tr.group td{font-family:var(--display);font-weight:700;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ok);background:rgba(88,163,69,.10);text-align:left;border-top:1px solid rgba(88,163,69,.3);border-bottom:1px solid rgba(88,163,69,.3);padding:9px 14px}
+.table-notes{padding:4px 14px 14px}
+.table-notes p{font-size:12px;color:var(--text-low);line-height:1.5;margin-top:10px}
+
+.empty{padding:40px 20px;text-align:center;color:var(--text-low)}
+.empty-ic{width:56px;height:56px;margin:0 auto 12px;border-radius:16px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);border:1px solid var(--stroke);color:var(--text-mid)}
+.empty b{display:block;font-family:var(--display);font-weight:800;font-size:14px;color:var(--text-mid)}
+.empty small{display:block;font-size:12px;margin-top:4px}
+
+/* INFO LIST (guidance) */
+.info-item{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--stroke)}
+.info-item:last-child{border-bottom:0}
+.info-item .tile{flex:none;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#06121c}
+.info-item b{display:block;font-family:var(--display);font-weight:800;font-size:13.5px;margin-bottom:4px}
+.info-item p{font-size:13px;color:var(--text-mid);line-height:1.6}
+.bullets{list-style:none}
+.bullets li{position:relative;padding-left:18px;margin-bottom:8px;font-size:13px;color:var(--text-mid);line-height:1.55}
+.bullets li:last-child{margin-bottom:0}
+.bullets li::before{content:'';position:absolute;left:2px;top:.6em;width:6px;height:6px;border-radius:50%;background:var(--blueliner);box-shadow:0 0 6px rgba(77,200,237,.8)}
+.alert{display:flex;gap:10px;margin-top:14px;padding:13px 14px;border-radius:var(--r-md);background:linear-gradient(90deg, rgba(247,148,29,.14), rgba(247,148,29,.04));border:1px solid rgba(247,148,29,.35);font-size:12.5px;font-weight:600;color:var(--text-hi);line-height:1.5}
+.alert svg{flex:none;margin-top:1px;color:var(--warn)}
+
+.reset{margin-top:14px;width:100%;font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.04em;color:var(--text-low);background:transparent;border:1px dashed var(--stroke-2);border-radius:var(--r-sm);padding:10px;cursor:pointer}
+
+footer{margin-top:26px;text-align:center;font-family:var(--display);font-weight:700;font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--text-low);line-height:1.8}
+footer .flow-line{margin:10px auto 0;width:40px;height:2px}
+
+:root{--tool:var(--redline);--tool-glow:rgba(240,83,78,.28)}
+.dia-chips{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.dia-chips .chip{min-width:0;padding:11px 0}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px}
+.legend span{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--text-low)}
+.legend i{width:11px;height:11px;border-radius:3px}
+.summary-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+
+/* Liner cards */
+.liners{display:flex;flex-direction:column;gap:12px}
+.liner{border-radius:var(--r-lg);background:var(--surface-1);border:1px solid var(--stroke);overflow:hidden;box-shadow:0 14px 34px rgba(0,0,0,.3);transition:border-color .2s}
+.liner.fit{border-color:rgba(88,163,69,.55);box-shadow:0 14px 34px rgba(0,0,0,.3), 0 0 0 1px rgba(88,163,69,.25)}
+.liner-head{display:flex;align-items:center;gap:10px;padding:13px 14px;border-bottom:1px solid var(--stroke);background:rgba(255,255,255,.02)}
+.liner-head .dot{width:10px;height:10px;border-radius:50%;flex:none}
+.liner-head b{font-family:var(--display);font-weight:800;font-size:14px}
+.liner-head small{font-size:11.5px;color:var(--text-low);font-weight:600;margin-left:2px}
+.liner-head .st{margin-left:auto;font-family:var(--display);font-weight:700;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:4px 9px;border-radius:20px;white-space:nowrap}
+.st.ok{color:var(--ok);background:rgba(88,163,69,.12);border:1px solid rgba(88,163,69,.35)}
+.st.part{color:var(--warn);background:rgba(247,148,29,.1);border:1px solid rgba(247,148,29,.3)}
+.st.bad{color:var(--bad);background:rgba(240,83,78,.1);border:1px solid rgba(240,83,78,.3)}
+.st.na{color:var(--text-low);background:rgba(255,255,255,.04);border:1px solid var(--stroke)}
+.grid{display:grid;grid-template-columns:1.25fr 1fr 1fr}
+.grid > div{padding:9px 10px;border-bottom:1px solid var(--stroke);font-size:13px;font-weight:600;text-align:center;white-space:nowrap}
+.grid > .gh{font-family:var(--display);font-weight:700;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-low);background:rgba(255,255,255,.02)}
+.grid > .rl{text-align:left;padding-left:14px;font-family:var(--display);font-weight:700;font-size:11.5px;color:var(--text-mid);white-space:normal;line-height:1.25}
+.grid > .rl small{display:block;font-family:var(--body);font-weight:600;font-size:10.5px;color:var(--text-low)}
+.grid > .sec{grid-column:1/-1;text-align:left;padding:7px 14px;font-family:var(--display);font-weight:700;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase}
+.sec.wt{color:var(--blueliner);background:rgba(77,200,237,.08)}
+.sec.nwt{color:var(--warn);background:rgba(247,148,29,.07)}
+.grid > .v.na{color:var(--text-low);font-weight:500}
+.grid > .v.ok{color:var(--ok);background:rgba(88,163,69,.10)}
+.grid > .v.out{color:var(--bad);background:rgba(240,83,78,.08)}
+.grid > div:nth-last-child(-n+3){border-bottom:0}
+</style>
+</head>
+<body>
+<div class="wrap stagger">
+
+  <header class="hero" style="--i:0">
+    <div class="hero-ic">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg>
+    </div>
+    <div class="eyebrow">Design Tool</div>
+    <h1>Liner Safe Depths</h1>
+    <p>Preliminary min / max depth of cover ranges for Nuflow liners — live load and no load, with and without a water table. Based on AS/NZS 2566.1 and ASTM F1216. For initial project review only.</p>
+    <div class="flow-line"></div>
+  </header>
+
+  <div class="sect" style="--i:1"><h2>Pipe diameter</h2><span class="hint">Step 1</span></div>
+  <section class="card card-pad" style="--i:2">
+    <div class="dia-chips" id="diaChips" role="radiogroup" aria-label="Pipe diameter"></div>
+    <div class="field" style="margin-top:16px">
+      <label class="label" for="nf-dep">Check depth of cover <small>Optional</small></label>
+      <div class="unit-input"><input id="nf-dep" type="number" inputmode="decimal" step="0.05" min="0" max="10" placeholder="e.g. 1.5" disabled><span>m</span></div>
+      <div class="legend hidden" id="nf-leg">
+        <span><i style="background:rgba(88,163,69,.35);border:1px solid var(--nugreen)"></i>Within range</span>
+        <span><i style="background:rgba(240,83,78,.2);border:1px solid var(--redline)"></i>Outside range</span>
+        <span><i style="background:rgba(255,255,255,.06);border:1px solid var(--stroke-2)"></i>Not applicable</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="result" id="resultCard" aria-live="polite">
+    <div class="eyebrow">Depth check</div>
+    <div class="result-desc" id="resultDesc"></div>
+    <div class="summary-row">
+      <div class="metric"><div class="metric-label">All scenarios</div><div class="metric-value c-green" id="sumOk">0</div><div class="metric-sub">liners</div></div>
+      <div class="metric"><div class="metric-label">Some</div><div class="metric-value c-warn" id="sumPart">0</div><div class="metric-sub">liners</div></div>
+      <div class="metric"><div class="metric-label">None</div><div class="metric-value c-bad" id="sumBad">0</div><div class="metric-sub">liners</div></div>
+    </div>
+  </section>
+
+  <div class="sect" style="--i:3"><h2>Safe depth ranges</h2><span class="hint" id="resHint">Min – max cover</span></div>
+  <div id="nf-empty" class="card" style="--i:4">
+    <div class="empty">
+      <div class="empty-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg></div>
+      <b>No diameter selected</b><small>Choose a pipe diameter above to view safe depth ranges</small>
+    </div>
+  </div>
+  <div class="liners" id="liners"></div>
+
+  <div class="sect" style="--i:5"><h2>Design parameters</h2></div>
+  <section class="card card-pad" style="--i:6">
+    <ul class="bullets">
+      <li>Short-term material flexural modulus of 2,500 MPa as provided by Nuflow.</li>
+      <li>Vehicle loading uses SM1600 loads per AS5100.2:2017, distributed per AS/NZS 2566.1.</li>
+      <li>4 MPa combined soil modulus — host pipe wall must be snug against liner without voids. Deteriorated pipes require project-specific design.</li>
+      <li>MIN and MAX cover figures are measured from FSL to top of pipe.</li>
+    </ul>
+    <div class="alert">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+      <span>This is a preliminary reference tool only. Any project outside these parameters must have a Liner Design Verification Form completed.</span>
+    </div>
+  </section>
+
+  <footer style="--i:7">© Nuflow Australasia · Liner Safe Depth Calculator<div class="flow-line"></div></footer>
+</div>
+
+<script>
+// c[] order: 0 WT·Fully·No loads, 1 WT·Fully·SM1600, 2 WT·Partial·No loads, 3 WT·Partial·SM1600,
+//            4 NoWT·Fully·No loads, 5 NoWT·Fully·SM1600, 6 NoWT·Partial·No loads, 7 NoWT·Partial·SM1600
+var LD=[
+  {d:"DN150",l:"Blueline Standard",t:4,   c:[[0.3,5],[0.3,5],[0.6,5],[0.6,5],[0.3,5],[0.3,5],[0.6,5],[0.6,5]]},
+  {d:"DN150",l:"Blueline X",       t:3.5, c:[[0.3,5],[0.3,5],[0.6,5],[0.6,5],[0.3,5],[0.3,5],[0.6,5],[0.6,5]]},
+  {d:"DN150",l:"Sumoline X",       t:4.5, c:[[0.3,5],[0.3,5],[0.6,5],[0.6,5],[0.3,5],[0.3,5],[0.6,5],[0.6,5]]},
+  {d:"DN225",l:"Blueline Standard",t:4,   c:[[0.3,4.2],[0.3,3.8],[0.6,4.1],[0.65,3.1],[0.3,5],[0.3,4.5],[0.6,5],[0.65,3.9]]},
+  {d:"DN225",l:"Blueline X",       t:3.5, c:[[0.3,5],[0.3,4.4],[0.6,5],[0.6,3.9],[0.3,5],[0.3,5],[0.6,5],[0.6,4.7]]},
+  {d:"DN225",l:"Sumoline X",       t:4.5, c:[[0.3,5],[0.3,5],[0.6,5],[0.6,5],[0.3,5],[0.3,5],[0.6,5],[0.6,5]]},
+  {d:"DN300",l:"Blueline Standard",t:4,   c:[[0.3,5],null,[0.6,0.6],[1,1.5],[0.3,5],[0.3,4.9],[0.6,5],[1,2.4]]},
+  {d:"DN300",l:"Blueline X",       t:3.5, c:[[0.3,2.5],[0.3,2.5],[0.6,2.5],[0.8,2.5],[0.3,5],[0.3,3.8],[0.6,5],[0.71,3.1]]},
+  {d:"DN300",l:"Sumoline X",       t:4.5, c:[[0.3,5],[0.3,5],[0.6,4.5],[0.6,4.5],[0.3,5],[0.3,5],[0.6,5],[0.6,5]]},
+  {d:"DN300",l:"Sumoline XL",      t:7.5, c:[[0.3,5],[0.3,5],[0.6,5],[0.6,5],[0.3,5],[0.3,5],[0.6,5],[0.6,5]]},
+  {d:"DN375",l:"Blueline Standard",t:4,   c:[[0.3,0.5],null,null,null,[0.3,2.5],[0.3,2.5],[0.6,5],null]},
+  {d:"DN375",l:"Blueline X",       t:3.5, c:[[0.3,5],[0.3,1.1],[0.6,1.1],null,[0.3,5],[0.3,3],[0.6,5],[1.1,2]]},
+  {d:"DN375",l:"Sumoline X",       t:4.5, c:[[0.3,5],[0.3,2.7],[0.6,4.5],[0.65,3.4],[0.3,5],[0.3,3.9],[0.6,5],[0.65,4.1]]},
+  {d:"DN375",l:"Sumoline XL",      t:7.5, c:[[0.3,5],[0.3,5],[0.6,5],[0.6,5],[0.3,5],[0.3,5],[0.6,5],[0.6,5]]},
+  {d:"DN450",l:"Blueline Standard",t:4,   c:[null,null,null,null,[0.3,5],[0.3,2],[0.6,5],null]},
+  {d:"DN450",l:"Blueline X",       t:3.5, c:[[0.3,0.4],[0.3,0.4],null,null,[0.3,5],[0.3,2.4],[0.6,5],null]},
+  {d:"DN450",l:"Sumoline X",       t:4.5, c:[[0.3,2.5],[0.3,2.5],[0.6,2.5],[0.6,2.5],[0.3,5],[0.3,3.8],[0.6,5],[0.6,3]]},
+  {d:"DN450",l:"Sumoline XL",      t:7.5, c:[[0.3,5],[0.3,5],[0.6,5],[0.6,4.7],[0.3,5],[0.3,5],[0.6,5],[0.6,5]]},
+  {d:"DN450",l:"Sumoline XXL",     t:7.5, c:[[0.3,5],[0.3,5],[0.6,5],[0.6,5],[0.3,5],[0.3,5],[0.6,5],[0.6,5]]},
+  {d:"DN525",l:"Blueline Standard",t:4,   c:[null,null,null,null,null,null,null,null]},
+  {d:"DN525",l:"Blueline X",       t:3.5, c:[null,null,null,null,[0.3,5],[0.3,1.9],null,null]},
+  {d:"DN525",l:"Sumoline X",       t:4.5, c:[[0.3,1.3],[0.3,1.3],null,null,[0.3,5],[0.3,3.1],[0.6,5],null]},
+  {d:"DN525",l:"Sumoline XL",      t:7.5, c:[[0.3,5],[0.3,4.4],[0.6,5],[0.6,3.9],[0.3,5],[0.3,5],[0.6,5],[0.6,4.6]]},
+  {d:"DN525",l:"Sumoline XXL",     t:11,  c:[[0.3,5],[0.3,5],[0.6,5],[0.6,5],[0.3,5],[0.3,5],[0.6,5],[0.6,5]]},
+  {d:"DN600",l:"Blueline Standard",t:4,   c:[null,null,null,null,null,null,null,null]},
+  {d:"DN600",l:"Blueline X",       t:4,   c:[null,null,null,null,null,null,null,null]},
+  {d:"DN600",l:"Sumoline X",       t:4.5, c:[[0.3,0.6],[0.3,0.7],null,null,[0.3,5],[0.3,2.6],[0.6,5],null]},
+  {d:"DN600",l:"Sumoline XL",      t:7.5, c:[[0.3,4.1],[0.3,3.8],[0.6,5],[0.7,3.1],[0.3,5],[0.3,4.4],[0.6,5],[0.7,3.8]]},
+  {d:"DN600",l:"Sumoline XXL",     t:11,  c:[[0.3,5],[0.3,5],[0.6,5],[0.6,5],[0.3,5],[0.3,5],[0.6,5],[0.6,5]]}
+];
+
+var DIAS=["DN150","DN225","DN300","DN375","DN450","DN525","DN600"];
+var dia="";
+var $=function(id){return document.getElementById(id);};
+function buzz(){try{navigator.vibrate&&navigator.vibrate(8);}catch(e){}}
+
+function linerColour(l){
+  if(l.indexOf("Blue")===0) return "var(--blueliner)";
+  if(l.indexOf("XXL")>-1)   return "var(--nuvline)";
+  if(l.indexOf("XL")>-1)    return "var(--pressureline)";
+  return "var(--nugreen)";
+}
+
+$("diaChips").innerHTML=DIAS.map(function(d){return '<button type="button" class="chip" role="radio" data-d="'+d+'">'+d.replace("DN","")+'</button>';}).join("")
+  +'<span style="grid-column:span 1;align-self:center;text-align:center;font-family:var(--display);font-weight:700;font-size:10px;letter-spacing:.14em;color:var(--text-low)">DN · mm</span>';
+$("diaChips").addEventListener("click",function(e){
+  var c=e.target.closest(".chip"); if(!c) return;
+  buzz(); dia=c.dataset.d; nfChange();
+});
+$("nf-dep").addEventListener("input",nfChange);
+
+function cell(v,dep){
+  if(!v) return '<div class="v na">—</div>';
+  var txt=v[0]+"–"+v[1]+"m";
+  if(dep===null) return '<div class="v">'+txt+'</div>';
+  return '<div class="v '+((dep>=v[0]&&dep<=v[1])?"ok":"out")+'">'+txt+'</div>';
+}
+
+function nfChange(){
+  var depEl=$("nf-dep");
+  var depV=depEl.value;
+  var dep=(depV!==""&&!isNaN(parseFloat(depV)))?parseFloat(depV):null;
+
+  document.querySelectorAll("#diaChips .chip").forEach(function(c){c.classList.toggle("on",c.dataset.d===dia);});
+  depEl.disabled=!dia;
+  $("nf-empty").style.display=dia?"none":"";
+  $("nf-leg").classList.toggle("hidden",!(dia&&dep!==null));
+  if(!dia){$("liners").innerHTML="";return;}
+
+  var rows=LD.filter(function(r){return r.d===dia;});
+  var nOk=0,nPart=0,nBad=0;
+  var html="";
+
+  rows.forEach(function(row){
+    var ok=0,out=0,avail=0;
+    row.c.forEach(function(v){
+      if(!v) return; avail++;
+      if(dep===null) return;
+      if(dep>=v[0]&&dep<=v[1]) ok++; else out++;
+    });
+    var st;
+    if(!avail){st='<span class="st na">No data</span>';}
+    else if(dep===null){st='<span class="st na">'+avail+' of 8 scenarios</span>';}
+    else if(ok>0&&out===0){st='<span class="st ok">Within range</span>';nOk++;}
+    else if(ok>0){st='<span class="st part">'+ok+' of '+avail+' OK</span>';nPart++;}
+    else {st='<span class="st bad">Outside range</span>';nBad++;}
+    var fit=(dep!==null&&ok>0&&out===0)?" fit":"";
+    var c=row.c;
+    html+='<article class="liner'+fit+'">'
+      +'<div class="liner-head"><span class="dot" style="background:'+linerColour(row.l)+';box-shadow:0 0 8px '+linerColour(row.l)+'"></span><b>'+row.l+'</b><small>'+row.t+' mm</small>'+st+'</div>'
+      +'<div class="grid">'
+      +'<div class="gh rl">Condition</div><div class="gh">No loads</div><div class="gh">SM1600</div>'
+      +'<div class="sec wt">💧 Water table to surface</div>'
+      +'<div class="rl">Fully<small>deteriorated</small></div>'+cell(c[0],dep)+cell(c[1],dep)
+      +'<div class="rl">Partial<small>deteriorated</small></div>'+cell(c[2],dep)+cell(c[3],dep)
+      +'<div class="sec nwt">☀️ No water table</div>'
+      +'<div class="rl">Fully<small>deteriorated</small></div>'+cell(c[4],dep)+cell(c[5],dep)
+      +'<div class="rl">Partial<small>deteriorated</small></div>'+cell(c[6],dep)+cell(c[7],dep)
+      +'</div></article>';
+  });
+  $("liners").innerHTML=html;
+  $("resHint").textContent=dia+" · "+rows.length+" liners";
+
+  var card=$("resultCard");
+  if(dep!==null){
+    $("resultDesc").textContent=dia+" at "+dep+" m depth of cover";
+    $("sumOk").textContent=nOk; $("sumPart").textContent=nPart; $("sumBad").textContent=nBad;
+    if(!card.classList.contains("visible")){void card.offsetWidth;card.classList.add("visible");}
+  } else card.classList.remove("visible");
+}
+nfChange();
+</script>
+</body>
+</html>

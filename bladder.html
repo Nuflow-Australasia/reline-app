@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0A113A">
+<title>Bladder Pressures — Nuflow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   NUFLOW RELINE APP — shared tool theme (mirrors index.html)
+   ============================================================ */
+:root{
+  --ink:#060914; --nublue-dark:#0A113A; --nublue:#252D65;
+  --blueliner:#4DC8ED; --nugreen:#58A345; --nugrey:#ECEDED;
+  --pressureline:#F7941D; --redline:#F0534E; --nuvline:#893DFF;
+  --nupine:#0A6242; --htar:#802673; --nucoat:#C473AD; --sumoline:#727D84;
+
+  --surface-1:rgba(255,255,255,.045); --surface-2:rgba(255,255,255,.08);
+  --stroke:rgba(255,255,255,.09); --stroke-2:rgba(255,255,255,.16);
+  --text-hi:#F4F6F8; --text-mid:rgba(236,237,237,.72); --text-low:rgba(236,237,237,.45);
+
+  --ok:#8ed07c; --bad:#ff8a86; --warn:#FFB25B;
+
+  --display:'Montserrat',-apple-system,'Segoe UI',Roboto,sans-serif;
+  --body:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --r-lg:22px; --r-md:16px; --r-sm:12px;
+  --spring:cubic-bezier(.34,1.56,.64,1);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--ink)}
+body{
+  font-family:var(--body);color:var(--text-hi);min-height:100vh;
+  -webkit-font-smoothing:antialiased;background:var(--ink);
+  padding:16px 16px calc(32px + env(safe-area-inset-bottom,0px));
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(120% 50% at 85% -10%, rgba(77,200,237,.10), transparent 55%),
+    radial-gradient(110% 45% at 0% 105%, rgba(88,163,69,.07), transparent 55%),
+    linear-gradient(180deg, var(--nublue-dark) 0%, var(--ink) 60%);
+}
+.wrap{max-width:560px;margin:0 auto}
+.hidden{display:none!important}
+
+.stagger > *{opacity:0;transform:translateY(12px);animation:riseIn .5s var(--spring) forwards;animation-delay:calc(var(--i,0)*70ms)}
+@keyframes riseIn{to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.stagger > *,.result.visible{animation:none!important;opacity:1!important;transform:none!important}}
+
+/* HERO */
+.hero{
+  position:relative;overflow:hidden;border-radius:var(--r-lg);padding:22px 20px 20px;
+  background:
+    radial-gradient(120% 120% at 100% 0%, var(--tool-glow), transparent 50%),
+    radial-gradient(100% 100% at 0% 100%, rgba(77,200,237,.10), transparent 55%),
+    linear-gradient(160deg, var(--nublue) 0%, var(--nublue-dark) 58%, #080d29 100%);
+  border:1px solid var(--stroke-2);box-shadow:0 18px 44px rgba(0,0,0,.42);
+}
+.hero::after{
+  content:'';position:absolute;width:200px;height:200px;border-radius:50%;
+  background:radial-gradient(circle, var(--tool-glow), transparent 65%);
+  top:-90px;right:-50px;animation:drift 9s ease-in-out infinite alternate;pointer-events:none;
+}
+@keyframes drift{to{transform:translate(-26px,20px) scale(1.15)}}
+.hero-ic{
+  width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;
+  background:var(--tool);color:#06121c;margin-bottom:14px;box-shadow:0 8px 20px var(--tool-glow);
+}
+.eyebrow{font-family:var(--display);font-weight:700;font-size:10.5px;letter-spacing:.32em;color:var(--blueliner);text-transform:uppercase;margin-bottom:8px}
+.hero h1{font-family:var(--display);font-weight:900;font-size:27px;letter-spacing:-.8px;line-height:1.08}
+.hero p{margin-top:8px;font-size:13.5px;color:var(--text-mid);line-height:1.5;max-width:36ch}
+.flow-line{margin-top:16px;height:3px;border-radius:3px;width:64px;background:linear-gradient(90deg,var(--blueliner),var(--nugreen));box-shadow:0 0 12px rgba(77,200,237,.65)}
+
+/* SECTIONS + CARDS */
+.sect{display:flex;align-items:baseline;justify-content:space-between;margin:22px 2px 10px}
+.sect h2{font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:-.2px}
+.sect .hint{font-size:11.5px;color:var(--text-low);font-weight:600;letter-spacing:.03em}
+.card{border-radius:var(--r-lg);background:var(--surface-1);border:1px solid var(--stroke);box-shadow:0 14px 34px rgba(0,0,0,.35);overflow:hidden}
+.card-pad{padding:18px 16px}
+
+/* INPUTS */
+.field + .field{margin-top:16px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row2 .field + .field{margin-top:0}
+.row2 + .field,.field + .row2{margin-top:16px}
+.label{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.02em;color:var(--text-hi);margin-bottom:8px}
+.label small{font-family:var(--body);font-weight:600;font-size:11px;color:var(--text-low);letter-spacing:.02em;text-align:right}
+.label.dim{opacity:.4}
+.select{position:relative}
+.select::after{content:'';position:absolute;right:16px;top:50%;width:8px;height:8px;margin-top:-6px;border-right:2px solid var(--text-mid);border-bottom:2px solid var(--text-mid);transform:rotate(45deg);pointer-events:none}
+select,input[type=number]{
+  width:100%;appearance:none;-webkit-appearance:none;
+  font-family:var(--body);font-size:16px;font-weight:600;color:var(--text-hi);
+  background:rgba(255,255,255,.06);border:1px solid var(--stroke-2);border-radius:var(--r-sm);
+  padding:14px 42px 14px 14px;cursor:pointer;transition:border-color .2s,box-shadow .2s,opacity .2s;
+}
+input[type=number]{padding:14px;cursor:text;-moz-appearance:textfield}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input::placeholder{color:var(--text-low);font-weight:500}
+select option{background:#0b1024;color:var(--text-hi)}
+select:focus,input:focus{outline:none;border-color:var(--blueliner);box-shadow:0 0 0 3px rgba(77,200,237,.2)}
+select:disabled,input:disabled{opacity:.4;cursor:not-allowed}
+.unit-input{position:relative}
+.unit-input input{padding-right:46px}
+.unit-input span{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-family:var(--display);font-weight:700;font-size:12px;color:var(--text-low);pointer-events:none}
+.hint-line{font-size:11.5px;color:var(--text-low);margin-top:7px;line-height:1.45}
+.hint-line strong{color:var(--blueliner)}
+.hint-line.err{color:var(--bad)}
+input.err{border-color:rgba(240,83,78,.6);box-shadow:0 0 0 3px rgba(240,83,78,.15)}
+
+/* Chips */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{
+  font-family:var(--display);font-weight:800;font-size:13px;letter-spacing:-.2px;color:var(--text-mid);
+  background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:11px;
+  padding:10px 12px;cursor:pointer;min-width:52px;text-align:center;
+  transition:transform .15s ease,background .2s,color .2s,border-color .2s,box-shadow .2s;
+}
+.chip:active{transform:scale(.93)}
+.chip.on{color:#06121c;background:var(--blueliner);border-color:var(--blueliner);box-shadow:0 6px 16px rgba(77,200,237,.35)}
+.chip:disabled{opacity:.35;cursor:not-allowed}
+
+/* Segmented */
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:4px;background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:14px}
+.seg button{font-family:var(--display);font-weight:700;font-size:12px;line-height:1.2;color:var(--text-mid);background:transparent;border:0;border-radius:10px;padding:10px 4px;cursor:pointer;transition:background .2s,color .2s}
+.seg button small{display:block;font-family:var(--body);font-size:10.5px;font-weight:600;opacity:.7;margin-top:2px}
+.seg button.on{background:var(--surface-2);color:var(--blueliner);box-shadow:inset 0 0 0 1px var(--stroke-2)}
+.seg button:disabled{opacity:.35;cursor:not-allowed}
+
+/* Toggle */
+.toggle-row{display:flex;align-items:center;gap:12px;margin-top:16px;padding:12px 13px;border-radius:var(--r-sm);background:rgba(255,255,255,.04);border:1px solid var(--stroke);cursor:pointer}
+.toggle-row b{flex:1;font-family:var(--display);font-weight:700;font-size:13px}
+.toggle-row b small{display:block;font-family:var(--body);font-weight:500;font-size:11.5px;color:var(--text-low);margin-top:2px}
+.toggle{position:relative;flex:none;width:46px;height:28px}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle .knob{position:absolute;inset:0;border-radius:20px;background:rgba(255,255,255,.14);transition:background .2s}
+.toggle .knob::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);transition:transform .25s var(--spring)}
+.toggle input:checked + .knob{background:var(--nugreen)}
+.toggle input:checked + .knob::after{transform:translateX(18px)}
+
+/* RESULT */
+.result{
+  display:none;margin-top:14px;position:relative;overflow:hidden;border-radius:var(--r-lg);padding:18px 16px 16px;
+  background:
+    radial-gradient(120% 120% at 100% 0%, rgba(77,200,237,.16), transparent 50%),
+    radial-gradient(100% 100% at 0% 100%, rgba(88,163,69,.12), transparent 55%),
+    linear-gradient(160deg, var(--nublue) 0%, var(--nublue-dark) 60%, #080d29 100%);
+  border:1px solid var(--stroke-2);box-shadow:0 18px 44px rgba(0,0,0,.42);
+}
+.result.visible{display:block;animation:riseIn .45s var(--spring) both;opacity:0;transform:translateY(12px)}
+.result-desc{font-family:var(--display);font-weight:800;font-size:16px;letter-spacing:-.2px;line-height:1.25}
+.badge{display:inline-flex;align-items:center;gap:6px;margin:10px 0 14px;font-family:var(--display);font-weight:700;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--blueliner);background:rgba(77,200,237,.12);border:1px solid rgba(77,200,237,.3);border-radius:20px;padding:5px 11px}
+.badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}
+.badge.ok{color:var(--ok);background:rgba(88,163,69,.12);border-color:rgba(88,163,69,.35)}
+.badge.bad{color:var(--bad);background:rgba(240,83,78,.1);border-color:rgba(240,83,78,.3)}
+.badge.warn{color:var(--warn);background:rgba(247,148,29,.1);border-color:rgba(247,148,29,.3)}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.metrics.three{grid-template-columns:repeat(3,1fr)}
+.metrics + .metrics{margin-top:10px}
+.metric{background:rgba(255,255,255,.06);border:1px solid var(--stroke);border-radius:var(--r-md);padding:14px 10px;text-align:center;min-width:0}
+.metric.wide{grid-column:1/-1}
+.metric-label{font-family:var(--display);font-weight:700;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-low);margin-bottom:6px;line-height:1.35}
+.metric-value{font-family:var(--display);font-weight:900;font-size:30px;letter-spacing:-1px;line-height:1.05;overflow-wrap:anywhere}
+.metric-value.sm{font-size:20px;letter-spacing:-.4px}
+.metric-sub{font-size:12px;font-weight:600;color:var(--text-mid);margin-top:5px}
+.metric.hero-m{background:linear-gradient(135deg, rgba(77,200,237,.20), rgba(77,200,237,.06));border-color:rgba(77,200,237,.4)}
+.metric.hero-m .metric-label{color:var(--blueliner)}
+.metric.hero-m .metric-value{color:var(--blueliner);font-size:40px}
+.c-blue{color:var(--blueliner)} .c-green{color:var(--ok)} .c-warn{color:var(--warn)} .c-bad{color:var(--bad)}
+
+.note{display:flex;gap:10px;margin-top:12px;padding:12px 13px;border-radius:var(--r-sm);background:rgba(77,200,237,.08);border:1px solid rgba(77,200,237,.22);font-size:12.5px;color:var(--text-mid);line-height:1.5}
+.note b{display:block;color:var(--blueliner);font-family:var(--display);font-weight:700;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.note.warn{background:rgba(247,148,29,.08);border-color:rgba(247,148,29,.28)}
+.note.warn b{color:var(--warn)}
+.note svg{flex:none;margin-top:1px}
+.disclaimer{margin-top:14px;padding-top:12px;border-top:1px solid var(--stroke);font-size:11.5px;color:var(--text-low);line-height:1.55}
+
+/* TABLE */
+.tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px 14px;text-align:center}
+thead th{font-family:var(--display);font-weight:700;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-low);background:rgba(255,255,255,.03);border-bottom:1px solid var(--stroke)}
+th:first-child,td:first-child{text-align:left}
+tbody tr{border-bottom:1px solid var(--stroke);transition:background .15s}
+tbody tr:last-child{border-bottom:0}
+tbody td{font-size:14px;font-weight:600;color:var(--text-hi)}
+tbody td:first-child{font-family:var(--display);font-weight:800;font-size:13.5px;color:var(--text-mid)}
+td.na{color:var(--text-low);font-weight:500}
+tr.clickable{cursor:pointer}
+tr.clickable:active{background:rgba(255,255,255,.04)}
+tr.active{background:linear-gradient(90deg, rgba(77,200,237,.16), rgba(77,200,237,.04))}
+tr.active td:first-child{color:var(--blueliner);box-shadow:inset 3px 0 0 var(--blueliner)}
+tr.active td{font-weight:800}
+tr.group th,tr.group td{font-family:var(--display);font-weight:700;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ok);background:rgba(88,163,69,.10);text-align:left;border-top:1px solid rgba(88,163,69,.3);border-bottom:1px solid rgba(88,163,69,.3);padding:9px 14px}
+.table-notes{padding:4px 14px 14px}
+.table-notes p{font-size:12px;color:var(--text-low);line-height:1.5;margin-top:10px}
+
+.empty{padding:40px 20px;text-align:center;color:var(--text-low)}
+.empty-ic{width:56px;height:56px;margin:0 auto 12px;border-radius:16px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);border:1px solid var(--stroke);color:var(--text-mid)}
+.empty b{display:block;font-family:var(--display);font-weight:800;font-size:14px;color:var(--text-mid)}
+.empty small{display:block;font-size:12px;margin-top:4px}
+
+/* INFO LIST (guidance) */
+.info-item{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--stroke)}
+.info-item:last-child{border-bottom:0}
+.info-item .tile{flex:none;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#06121c}
+.info-item b{display:block;font-family:var(--display);font-weight:800;font-size:13.5px;margin-bottom:4px}
+.info-item p{font-size:13px;color:var(--text-mid);line-height:1.6}
+.bullets{list-style:none}
+.bullets li{position:relative;padding-left:18px;margin-bottom:8px;font-size:13px;color:var(--text-mid);line-height:1.55}
+.bullets li:last-child{margin-bottom:0}
+.bullets li::before{content:'';position:absolute;left:2px;top:.6em;width:6px;height:6px;border-radius:50%;background:var(--blueliner);box-shadow:0 0 6px rgba(77,200,237,.8)}
+.alert{display:flex;gap:10px;margin-top:14px;padding:13px 14px;border-radius:var(--r-md);background:linear-gradient(90deg, rgba(247,148,29,.14), rgba(247,148,29,.04));border:1px solid rgba(247,148,29,.35);font-size:12.5px;font-weight:600;color:var(--text-hi);line-height:1.5}
+.alert svg{flex:none;margin-top:1px;color:var(--warn)}
+
+.reset{margin-top:14px;width:100%;font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.04em;color:var(--text-low);background:transparent;border:1px dashed var(--stroke-2);border-radius:var(--r-sm);padding:10px;cursor:pointer}
+
+footer{margin-top:26px;text-align:center;font-family:var(--display);font-weight:700;font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--text-low);line-height:1.8}
+footer .flow-line{margin:10px auto 0;width:40px;height:2px}
+
+:root{--tool:var(--blueliner);--tool-glow:rgba(77,200,237,.30)}
+.types{display:flex;flex-direction:column;gap:8px}
+.type{
+  display:flex;align-items:center;gap:12px;padding:12px;border-radius:var(--r-sm);cursor:pointer;text-align:left;
+  background:rgba(255,255,255,.05);border:1px solid var(--stroke);color:var(--text-mid);
+  transition:transform .15s ease,background .2s,border-color .2s,color .2s;
+}
+.type:active{transform:scale(.98)}
+.type .tile{flex:none;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#06121c}
+.type b{display:block;font-family:var(--display);font-weight:800;font-size:13.5px;color:var(--text-hi)}
+.type small{display:block;font-size:11.5px;color:var(--text-low);margin-top:2px}
+.type .tick{margin-left:auto;width:20px;height:20px;border-radius:50%;border:2px solid var(--stroke-2);flex:none;transition:all .2s}
+.type.on{background:rgba(77,200,237,.10);border-color:rgba(77,200,237,.5)}
+.type.on .tick{border-color:var(--blueliner);background:var(--blueliner);box-shadow:inset 0 0 0 3px #0b1024}
+.depth-panel{margin-top:16px;padding:14px;border-radius:var(--r-md);background:rgba(137,61,255,.08);border:1px solid rgba(137,61,255,.3)}
+.depth-panel .tag{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:800;font-size:12.5px;color:#c7a6ff;margin-bottom:12px}
+.depth-panel .chips{display:grid;grid-template-columns:repeat(8,1fr);gap:5px}
+.depth-panel .chip{min-width:0;padding:10px 0}
+.gauge{margin-top:14px}
+.gauge-track{position:relative;height:12px;border-radius:7px;background:rgba(255,255,255,.07)}
+.gauge-band{position:absolute;top:0;bottom:0;border-radius:7px;background:linear-gradient(90deg,var(--nugreen),var(--blueliner));box-shadow:0 0 12px rgba(77,200,237,.5);transition:left .4s var(--spring),width .4s var(--spring)}
+.gauge-scale{display:flex;justify-content:space-between;margin-top:6px;font-size:10.5px;font-weight:600;color:var(--text-low)}
+.layflat{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px;padding:12px 14px;border-radius:var(--r-md);background:rgba(255,255,255,.06);border:1px solid var(--stroke)}
+.layflat span{font-family:var(--display);font-weight:700;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-low)}
+.layflat b{font-family:var(--display);font-weight:900;font-size:22px;letter-spacing:-.5px}
+tr.sub td{font-family:var(--display);font-weight:700;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-low);background:rgba(255,255,255,.02)}
+</style>
+</head>
+<body>
+<div class="wrap stagger">
+
+  <header class="hero" style="--i:0">
+    <div class="hero-ic">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 1 9-9"/><path d="M12 12l4-4"/><path d="M19.5 16.5 21 21l-4.5-1.5"/></svg>
+    </div>
+    <div class="eyebrow">Inflation Tool</div>
+    <h1>Bladder Pressures</h1>
+    <p>Pick a bladder type and size to see the recommended pressure range.</p>
+    <div class="flow-line"></div>
+  </header>
+
+  <div class="sect" style="--i:1"><h2>Bladder / junction type</h2><span class="hint">Step 1</span></div>
+  <section class="card card-pad" style="--i:2">
+    <div class="types" id="typeBtns" role="radiogroup" aria-label="Bladder type"></div>
+  </section>
+
+  <div class="sect" style="--i:3"><h2>Size</h2><span class="hint" id="sizeHint">Pick a type first</span></div>
+  <section class="card card-pad" style="--i:4">
+    <div class="chips" id="sizeChips" role="radiogroup" aria-label="Size">
+      <span class="hint-line" style="margin:0">Sizes appear once a type is selected.</span>
+    </div>
+
+    <div class="depth-panel hidden" id="redicurePanel">
+      <div class="tag">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg>
+        Redicure — depth settings
+      </div>
+      <div class="label">Direction</div>
+      <div class="seg" id="dirSeg" role="radiogroup" aria-label="Direction">
+        <button type="button" data-v="below">Below ground</button>
+        <button type="button" data-v="above">Above ground</button>
+      </div>
+      <div class="label dim" id="depthLabel" style="margin-top:14px">Depth / height <small>metres</small></div>
+      <div class="chips" id="depthChips" role="radiogroup" aria-label="Depth"></div>
+    </div>
+  </section>
+
+  <section class="result" id="resultCard" aria-live="polite">
+    <div class="eyebrow" id="resultEyebrow">Recommended pressure range</div>
+    <div class="result-desc" id="resultLabel"></div>
+
+    <div id="standardResult">
+      <div class="metrics" style="margin-top:14px">
+        <div class="metric"><div class="metric-label">Minimum</div><div class="metric-value c-green" id="valMin">—</div><div class="metric-sub">PSI</div></div>
+        <div class="metric"><div class="metric-label">Maximum</div><div class="metric-value c-blue" id="valMax">—</div><div class="metric-sub">PSI</div></div>
+      </div>
+      <div class="gauge">
+        <div class="gauge-track"><div class="gauge-band" id="gaugeBand"></div></div>
+        <div class="gauge-scale"><span>0</span><span id="gaugeMid"></span><span id="gaugeTop"></span></div>
+      </div>
+      <div class="layflat hidden" id="rubberLayflatRow"><span>Layflat tube</span><b id="valLayflat">—</b></div>
+    </div>
+
+    <div id="redicureResult" class="hidden">
+      <div class="metrics" style="margin-top:14px">
+        <div class="metric hero-m"><div class="metric-label">Flow pressure</div><div class="metric-value" id="valFlow">—</div><div class="metric-sub">PSI</div></div>
+        <div class="metric"><div class="metric-label">Return pressure</div><div class="metric-value" id="valReturn" style="font-size:40px">—</div><div class="metric-sub">PSI</div></div>
+      </div>
+    </div>
+
+    <div class="disclaimer" id="resultNote"></div>
+  </section>
+
+  <div class="sect" style="--i:5"><h2>Reference table</h2><span class="hint" id="tblHint">Reference</span></div>
+  <section class="card" style="--i:6">
+    <div class="tbl-scroll">
+      <table>
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer style="--i:7">© Nuflow Australasia · Bladder Pressure Reference<div class="flow-line"></div></footer>
+</div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────
+const DATA = {
+  rubber: {
+    label: "Standard Rubber Bladder",
+    sizes: [
+      { size: "40mm",  min: 35, max: 40, layflat: "25mm"  },
+      { size: "50mm",  min: 32, max: 36, layflat: "38mm"  },
+      { size: "65mm",  min: 23, max: 27, layflat: "65mm"  },
+      { size: "100mm", min: 18, max: 22, layflat: "81mm"  },
+      { size: "150mm", min: 12, max: 16, layflat: "126mm" },
+      { size: "225mm", min: 10, max: 12, layflat: "172mm" },
+      { size: "300mm", min:  6, max:  8, layflat: "270mm" },
+      { size: "375mm", min:  5, max:  7, layflat: "270mm" },
+      { size: "450mm", min:  4, max:  6, layflat: "320mm" },
+      { size: "525mm", min:  4, max:  6, layflat: "320mm" },
+    ]
+  },
+  vinyl: {
+    label: "Standard Vinyl Bladder",
+    sizes: [
+      { size: "525mm",  min: 3, max: 5 },
+      { size: "600mm",  min: 3, max: 4 },
+      { size: "675mm",  min: 2, max: 4 },
+      { size: "825mm",  min: 2, max: 3 },
+      { size: "900mm",  min: 1, max: 2 },
+      { size: "1000mm", min: 1, max: 2 },
+    ]
+  },
+  "rubber-junction": {
+    label: "Rubber Junction",
+    sizes: [
+      { size: "100 x 50",  min: 25, max: 28 },
+      { size: "100 x 65",  min: 23, max: 25 },
+      { size: "100 x 100", min: 18, max: 24 },
+      { size: "150 x 100", min: 15, max: 18 },
+      { size: "150 x 150", min: 12, max: 16 },
+      { size: "225 x 100", min: 13, max: 16 },
+      { size: "225 x 150", min: 12, max: 15 },
+    ]
+  },
+  "silicone-junction": {
+    label: "Silicone Junction",
+    sizes: [
+      { size: "100 x 100", min: 8, max: 12 },
+      { size: "150 x 100", min: 8, max: 12 },
+      { size: "150 x 150", min: 8, max: 12 },
+    ]
+  }
+};
+
+const REDICURE = {
+  label: "Redicure Bladder",
+  sizes: ["100mm", "150mm", "225mm"],
+  data: {
+    "100mm": {
+      below: [
+        { depth:1, flow:18,   ret:10 }, { depth:2, flow:16.5, ret:10 },
+        { depth:3, flow:15,   ret:10 }, { depth:4, flow:13.5, ret:10 },
+        { depth:5, flow:12,   ret:10 }, { depth:6, flow:10.5, ret:10 },
+        { depth:7, flow:9,    ret:10 }, { depth:8, flow:7.5,  ret:10 },
+      ],
+      above: [
+        { depth:1, flow:18,   ret:10 }, { depth:2, flow:19.5, ret:10 },
+        { depth:3, flow:21,   ret:10 }, { depth:4, flow:22.5, ret:10 },
+        { depth:5, flow:24,   ret:10 }, { depth:6, flow:25.5, ret:10 },
+        { depth:7, flow:27,   ret:10 }, { depth:8, flow:28.5, ret:10 },
+      ]
+    },
+    "150mm": {
+      below: [
+        { depth:1, flow:15,   ret:8 }, { depth:2, flow:13.5, ret:8 },
+        { depth:3, flow:12,   ret:8 }, { depth:4, flow:10.5, ret:8 },
+        { depth:5, flow:9,    ret:8 }, { depth:6, flow:7.5,  ret:8 },
+        { depth:7, flow:6,    ret:8 }, { depth:8, flow:4.5,  ret:8 },
+      ],
+      above: [
+        { depth:1, flow:15,   ret:8 }, { depth:2, flow:16.5, ret:8 },
+        { depth:3, flow:18,   ret:8 }, { depth:4, flow:19.5, ret:8 },
+        { depth:5, flow:21,   ret:8 }, { depth:6, flow:22.5, ret:8 },
+        { depth:7, flow:24,   ret:8 }, { depth:8, flow:25.5, ret:8 },
+      ]
+    },
+    "225mm": {
+      below: [
+        { depth:1, flow:10,   ret:4 }, { depth:2, flow:8.5,  ret:4 },
+        { depth:3, flow:7,    ret:4 }, { depth:4, flow:5.5,  ret:4 },
+        { depth:5, flow:4,    ret:4 }, { depth:6, flow:2.5,  ret:4 },
+        { depth:7, flow:1,    ret:4 }, { depth:8, flow:-0.5, ret:4 },
+      ],
+      above: [
+        { depth:1, flow:1,    ret:4 }, { depth:2, flow:11.5, ret:4 },
+        { depth:3, flow:13,   ret:4 }, { depth:4, flow:14.5, ret:4 },
+        { depth:5, flow:16,   ret:4 }, { depth:6, flow:17.5, ret:4 },
+        { depth:7, flow:19,   ret:4 }, { depth:8, flow:20.5, ret:4 },
+      ]
+    }
+  }
+};
+
+const TYPES = [
+  { v:'rubber',            label:'Standard Rubber Bladder', sub:'40 – 525mm · with layflat tube', c:'var(--blueliner)' },
+  { v:'vinyl',             label:'Standard Vinyl Bladder',  sub:'525 – 1000mm',                 c:'var(--nugreen)' },
+  { v:'rubber-junction',   label:'Rubber Junction',         sub:'100 x 50 – 225 x 150',         c:'var(--pressureline)' },
+  { v:'silicone-junction', label:'Silicone Junction',       sub:'100 x 100 – 150 x 150',        c:'var(--nucoat)' },
+  { v:'redicure',          label:'Redicure Bladder',        sub:'Hot water cure · depth-adjusted', c:'var(--nuvline)' },
+];
+const ICONS = {
+  bladder: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="8" rx="4"/></svg>',
+  junction:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15h18M12 15V4"/></svg>',
+  redicure:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>'
+};
+
+// ── State + utilities ─────────────────────────────────────────────
+const state = { type:'', size:'', dir:'', depth:null };
+const fmt = v => Number.isInteger(v) ? String(v) : v.toFixed(1);
+const $ = id => document.getElementById(id);
+const buzz = () => { try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} };
+
+$('typeBtns').innerHTML = TYPES.map(t => `
+  <button type="button" class="type" role="radio" aria-checked="false" data-v="${t.v}">
+    <span class="tile" style="background:${t.c}">${t.v === 'redicure' ? ICONS.redicure : t.v.includes('junction') ? ICONS.junction : ICONS.bladder}</span>
+    <span><b>${t.label}</b><small>${t.sub}</small></span><span class="tick"></span>
+  </button>`).join('');
+$('depthChips').innerHTML = [1,2,3,4,5,6,7,8].map(d => `<button type="button" class="chip" data-d="${d}" disabled>${d}</button>`).join('');
+
+// ── Events ────────────────────────────────────────────────────────
+$('typeBtns').addEventListener('click', e => {
+  const b = e.target.closest('.type'); if (!b) return;
+  buzz();
+  state.type = b.dataset.v; state.size = ''; state.dir = ''; state.depth = null;
+  const rec = state.type === 'redicure';
+  const sizes = rec ? REDICURE.sizes : DATA[state.type].sizes.map(s => s.size);
+  $('sizeChips').innerHTML = sizes.map(s => `<button type="button" class="chip" role="radio" data-s="${s}">${s}</button>`).join('');
+  $('sizeHint').textContent = `${sizes.length} sizes`;
+  $('redicurePanel').classList.toggle('hidden', !rec);
+  update();
+});
+$('sizeChips').addEventListener('click', e => {
+  const c = e.target.closest('.chip'); if (!c) return;
+  buzz(); state.size = (state.size === c.dataset.s) ? '' : c.dataset.s; update(true);
+});
+$('dirSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  buzz(); state.dir = b.dataset.v; update(true);
+});
+$('depthChips').addEventListener('click', e => {
+  const c = e.target.closest('.chip'); if (!c || c.disabled) return;
+  buzz(); state.depth = (state.depth === +c.dataset.d) ? null : +c.dataset.d; update(true);
+});
+
+// ── Render ────────────────────────────────────────────────────────
+function update(scroll) {
+  document.querySelectorAll('.type').forEach(t => { const on = t.dataset.v === state.type; t.classList.toggle('on', on); t.setAttribute('aria-checked', on); });
+  document.querySelectorAll('#sizeChips .chip').forEach(c => c.classList.toggle('on', c.dataset.s === state.size));
+  document.querySelectorAll('#dirSeg button').forEach(b => b.classList.toggle('on', b.dataset.v === state.dir));
+  document.querySelectorAll('#depthChips .chip').forEach(c => { c.disabled = !state.dir; c.classList.toggle('on', +c.dataset.d === state.depth); });
+  $('depthLabel').classList.toggle('dim', !state.dir);
+
+  let shown = false;
+  if (state.type === 'redicure') {
+    if (state.size && state.dir && state.depth) shown = showRedicureResult(state.size, state.dir, state.depth);
+    renderTable('redicure', state.size || null, state.dir || null, state.depth);
+  } else if (state.type) {
+    if (state.size) {
+      const item = DATA[state.type].sizes.find(s => s.size === state.size);
+      showStandardResult(DATA[state.type].label, state.size, item.min, item.max, item.layflat || null);
+      shown = true;
+    }
+    renderTable(state.type, state.size);
+  } else {
+    renderTable(null);
+  }
+  const card = $('resultCard');
+  if (!shown) { card.classList.remove('visible'); return; }
+  card.classList.remove('visible'); void card.offsetWidth; card.classList.add('visible');
+  if (scroll) {
+    const r = card.getBoundingClientRect();
+    if (r.top > window.innerHeight * 0.75) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+function showStandardResult(typeLabel, size, min, max, layflat) {
+  $('resultEyebrow').textContent = 'Recommended pressure range';
+  $('resultLabel').textContent   = `${typeLabel} — ${size}`;
+  $('valMin').textContent = fmt(min);
+  $('valMax').textContent = fmt(max);
+  // Gauge scaled to the largest max in this type
+  const top = Math.max(...DATA[state.type].sizes.map(s => s.max));
+  const scaleTop = Math.ceil(top / 5) * 5;
+  $('gaugeBand').style.left = (min / scaleTop * 100) + '%';
+  $('gaugeBand').style.width = Math.max(2, (max - min) / scaleTop * 100) + '%';
+  $('gaugeMid').textContent = scaleTop / 2;
+  $('gaugeTop').textContent = scaleTop + ' PSI';
+  $('standardResult').classList.remove('hidden');
+  $('redicureResult').classList.add('hidden');
+  $('rubberLayflatRow').classList.toggle('hidden', !layflat);
+  if (layflat) $('valLayflat').textContent = layflat;
+  $('resultNote').textContent = 'Inflate gradually and monitor continuously. Do not exceed the maximum PSI. When relining through a bend, operate towards the upper end of the recommended pressure range to ensure full liner contact. Always follow site-specific safety procedures and Nuflow installation guidelines.';
+}
+
+function showRedicureResult(size, dir, depth) {
+  const row = REDICURE.data[size][dir].find(r => r.depth === depth);
+  if (!row) return false;
+  const dirLabel = dir === 'below' ? 'Below Ground' : 'Above Ground';
+  $('resultEyebrow').textContent = 'Recommended operating pressures';
+  $('resultLabel').textContent   = `Redicure Bladder — ${size} · ${dirLabel} · ${depth}m`;
+  $('valFlow').textContent   = fmt(row.flow);
+  $('valReturn').textContent = fmt(row.ret);
+  $('standardResult').classList.add('hidden');
+  $('redicureResult').classList.remove('hidden');
+  $('resultNote').textContent = 'Hot water cure — gravity affects flow pressure. Circulate water to confirm stable temperatures before pressurising. Monitor flow and return pressures continuously. Always follow site-specific safety procedures and Nuflow installation guidelines.';
+  return true;
+}
+
+function renderTable(typeKey, activeSize, activeDir, activeDepth) {
+  const thead = $('tableHead'), tbody = $('tableBody');
+  if (!typeKey) {
+    $('tblHint').textContent = 'Reference';
+    thead.innerHTML = '';
+    tbody.innerHTML = `<tr><td style="padding:0"><div class="empty">
+      <div class="empty-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 1 9-9"/><path d="M12 12l4-4"/></svg></div>
+      <b>Choose a bladder type</b><small>Select a type above to view the full reference table</small></div></td></tr>`;
+    return;
+  }
+  $('tblHint').textContent = typeKey === 'redicure' ? 'Flow / return PSI' : 'Tap a row to select';
+
+  if (typeKey === 'redicure') {
+    if (activeSize) {
+      thead.innerHTML = '<tr><th>Depth</th><th>Flow PSI</th><th>Return PSI</th></tr>';
+      const dirs = activeDir ? [activeDir] : ['below', 'above'];
+      const dirNames = { below: 'Below Ground', above: 'Above Ground' };
+      tbody.innerHTML = dirs.map(dir =>
+        `<tr class="group"><td colspan="3">${activeSize} — ${dirNames[dir]}</td></tr>` +
+        REDICURE.data[activeSize][dir].map(row => `
+          <tr class="${activeDir === dir && activeDepth === row.depth ? 'active' : ''}">
+            <td>${row.depth} m</td><td>${fmt(row.flow)}</td><td>${fmt(row.ret)}</td>
+          </tr>`).join('')
+      ).join('');
+    } else {
+      thead.innerHTML = '<tr><th>Size</th><th colspan="2">Below ground</th><th colspan="2">Above ground</th></tr>';
+      tbody.innerHTML =
+        '<tr class="sub"><td></td><td>Flow</td><td>Return</td><td>Flow</td><td>Return</td></tr>' +
+        '<tr class="group"><td colspan="5">Redicure Bladder — at 1 metre depth</td></tr>' +
+        REDICURE.sizes.map(sz => {
+          const b = REDICURE.data[sz].below[0], a = REDICURE.data[sz].above[0];
+          return `<tr><td>${sz}</td><td>${fmt(b.flow)}</td><td>${fmt(b.ret)}</td><td>${fmt(a.flow)}</td><td>${fmt(a.ret)}</td></tr>`;
+        }).join('');
+    }
+    return;
+  }
+
+  const group = DATA[typeKey];
+  const isRubber = typeKey === 'rubber';
+  thead.innerHTML = `<tr><th>Size</th><th>Min PSI</th><th>Max PSI</th>${isRubber ? '<th>Layflat</th>' : ''}</tr>`;
+  tbody.innerHTML = `<tr class="group"><td colspan="${isRubber ? 4 : 3}">${group.label}</td></tr>` +
+    group.sizes.map(item => `
+      <tr class="clickable ${item.size === activeSize ? 'active' : ''}" data-s="${item.size}">
+        <td>${item.size}</td><td>${fmt(item.min)}</td><td>${fmt(item.max)}</td>${isRubber ? `<td>${item.layflat}</td>` : ''}
+      </tr>`).join('');
+  tbody.querySelectorAll('tr.clickable').forEach(tr => tr.addEventListener('click', () => {
+    buzz(); state.size = tr.dataset.s; update(true);
+  }));
+}
+
+update();
+</script>
+</body>
+</html>
