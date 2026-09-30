@@ -562,6 +562,70 @@ nav{
   .flowline{width:150px}
   .tagline,.splash-foot{opacity:1}
 }
+
+/* ============================================================
+   SIGN IN — Community Hub (Circle) members only
+   ============================================================ */
+#signin{
+  position:absolute;inset:0;z-index:90;display:none;flex-direction:column;
+  background:
+    radial-gradient(110% 55% at 85% -10%, rgba(77,200,237,.14), transparent 55%),
+    radial-gradient(110% 55% at 0% 110%, rgba(88,163,69,.10), transparent 55%),
+    linear-gradient(180deg, var(--nublue-dark) 0%, var(--ink) 55%);
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+}
+#signin.show{display:flex}
+#signin.leaving{animation:siOut .45s ease forwards}
+@keyframes siOut{to{opacity:0;transform:scale(1.02)}}
+.si-wrap{flex:1;display:flex;flex-direction:column;justify-content:center;padding:calc(var(--sat) + 28px) 22px calc(var(--sab) + 24px);max-width:420px;width:100%;margin:0 auto}
+.si-logo{width:190px;height:auto;display:block;margin:0 0 26px;filter:drop-shadow(0 8px 20px rgba(0,0,0,.4))}
+.si-eyebrow{font-family:var(--display);font-weight:700;font-size:10.5px;letter-spacing:.32em;color:var(--blueliner);text-transform:uppercase;margin-bottom:8px}
+.si-wrap h1{font-family:var(--display);font-weight:900;font-size:27px;letter-spacing:-.8px;line-height:1.1}
+.si-lead{margin-top:8px;font-size:13.5px;color:var(--text-mid);line-height:1.55}
+.si-lead b{color:var(--text-hi)}
+.si-card{margin-top:22px;padding:18px 16px;border-radius:var(--r-lg);background:var(--surface-1);border:1px solid var(--stroke);box-shadow:0 14px 34px rgba(0,0,0,.35)}
+.si-step{display:none}
+.si-step.on{display:block;animation:riseIn .45s var(--spring) both}
+.si-label{display:block;font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.02em;margin-bottom:8px}
+.si-input{
+  width:100%;font-family:var(--body);font-size:16px;font-weight:600;color:var(--text-hi);
+  background:rgba(255,255,255,.06);border:1px solid var(--stroke-2);border-radius:var(--r-sm);
+  padding:14px;outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.si-input::placeholder{color:var(--text-low);font-weight:500}
+.si-input:focus{border-color:var(--blueliner);box-shadow:0 0 0 3px rgba(77,200,237,.2)}
+.si-input.code{font-family:var(--display);font-weight:800;font-size:28px;letter-spacing:.5em;text-align:center;padding:14px 0 14px .5em}
+.si-btn{
+  margin-top:14px;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;
+  font-family:var(--display);font-weight:800;font-size:14.5px;letter-spacing:.01em;
+  color:#06121c;background:var(--blueliner);border:0;border-radius:var(--r-sm);padding:15px;cursor:pointer;
+  box-shadow:0 10px 24px rgba(77,200,237,.3);transition:transform .15s ease,opacity .2s;
+}
+.si-btn:active{transform:scale(.98)}
+.si-btn:disabled{opacity:.55;cursor:default;transform:none}
+.si-btn .spin{width:16px;height:16px;border-radius:50%;border:2.5px solid rgba(6,18,28,.3);border-top-color:#06121c;animation:spin .8s linear infinite;display:none}
+.si-btn.busy .spin{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.si-msg{display:none;margin-top:12px;padding:11px 12px;border-radius:var(--r-sm);font-size:12.5px;line-height:1.5}
+.si-msg.show{display:block}
+.si-msg.err{color:#ffb3b0;background:rgba(240,83,78,.10);border:1px solid rgba(240,83,78,.35)}
+.si-msg.info{color:var(--text-mid);background:rgba(77,200,237,.08);border:1px solid rgba(77,200,237,.25)}
+.si-sent{font-size:13px;color:var(--text-mid);line-height:1.5;margin-bottom:14px}
+.si-sent b{color:var(--text-hi);word-break:break-all}
+.si-links{display:flex;justify-content:space-between;gap:10px;margin-top:14px}
+.si-link{background:none;border:0;padding:4px 0;font-family:var(--body);font-size:12.5px;font-weight:600;color:var(--blueliner);cursor:pointer}
+.si-link:disabled{color:var(--text-low);cursor:default}
+.si-foot{margin-top:18px;font-size:12px;color:var(--text-low);line-height:1.55;text-align:center}
+.si-foot a{color:var(--blueliner);text-decoration:none;font-weight:600}
+.si-line{margin-top:16px;height:3px;border-radius:3px;width:64px;background:linear-gradient(90deg,var(--blueliner),var(--nugreen));box-shadow:0 0 12px rgba(77,200,237,.65)}
+
+/* Account card on the More tab */
+.acct{display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--r-md);background:var(--surface-1);border:1px solid var(--stroke);margin-top:12px}
+.acct-av{flex:none;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;font-size:16px;color:#06121c;background:linear-gradient(135deg,var(--blueliner),var(--nugreen))}
+.acct b{display:block;font-size:14px;font-weight:700}
+.acct small{display:block;font-size:11.5px;color:var(--text-mid);margin-top:2px;word-break:break-all}
+.acct-out{margin-left:auto;flex:none;font-family:var(--display);font-weight:700;font-size:12px;color:var(--text-hi);background:var(--surface-2);border:1px solid var(--stroke-2);border-radius:20px;padding:8px 13px;cursor:pointer}
+.acct-out:active{transform:scale(.96)}
 </style>
 </head>
 <body>
@@ -573,6 +637,42 @@ nav{
     <div class="flowline"></div>
     <div class="tagline">RELINE TECHNICIAN APP</div>
     <div class="splash-foot">NUFLOW RELINE APP v1.0</div>
+  </div>
+
+  <!-- ══════════ SIGN IN (Community Hub members) ══════════ -->
+  <div id="signin" aria-hidden="true">
+    <div class="si-wrap">
+      <img class="si-logo" id="siLogo" alt="Nuflow">
+      <div class="si-eyebrow">Members only</div>
+      <h1 id="siTitle">Sign in with your Community Hub email</h1>
+      <p class="si-lead" id="siLead">Use the email you sign in to <b>community.nuflow.net</b> with. We'll email you a 6-digit code — no password needed.</p>
+      <div class="si-line"></div>
+
+      <div class="si-card">
+        <!-- Step 1: email -->
+        <form class="si-step on" id="siStepEmail" novalidate>
+          <label class="si-label" for="siEmail">Email</label>
+          <input class="si-input" id="siEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="you@company.com.au" required>
+          <button class="si-btn" type="submit" id="siSend"><span class="spin"></span><span>Email me a code</span></button>
+        </form>
+
+        <!-- Step 2: code -->
+        <form class="si-step" id="siStepCode" novalidate>
+          <p class="si-sent">We sent a code to <b id="siSentTo"></b>. It expires in 10 minutes — check your junk folder if it's not there.</p>
+          <label class="si-label" for="siCode">6-digit code</label>
+          <input class="si-input code" id="siCode" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" placeholder="••••••">
+          <button class="si-btn" type="submit" id="siVerify"><span class="spin"></span><span>Sign in</span></button>
+          <div class="si-links">
+            <button class="si-link" type="button" id="siBack">Use a different email</button>
+            <button class="si-link" type="button" id="siResend">Resend code</button>
+          </div>
+        </form>
+
+        <div class="si-msg" id="siMsg" role="alert"></div>
+      </div>
+
+      <p class="si-foot">Not on the Community Hub yet? Ask Nuflow head office for access, or visit <a href="https://community.nuflow.net" target="_blank" rel="noopener">community.nuflow.net</a>.</p>
+    </div>
   </div>
 
   <!-- ══════════ HEADER ══════════ -->
@@ -711,6 +811,11 @@ nav{
             <p>Shop, learning, marketing and support — the rest of the Nuflow ecosystem.</p>
           </div>
           <div class="rows" style="--i:1" id="moreRows"></div>
+          <div class="acct" id="acctCard" style="--i:2;display:none">
+            <div class="acct-av" id="acctAv">?</div>
+            <div><b id="acctName">Signed in</b><small id="acctEmail"></small></div>
+            <button class="acct-out" id="acctOut" type="button">Sign out</button>
+          </div>
           <div class="foot-note" style="--i:2">
             <span class="proto-badge">NUFLOW RELINE APP v1.0</span>
           </div>
@@ -1288,6 +1393,215 @@ $('#vNoteBtn').addEventListener('click', () => openExternal(vUrl));
 
 
 </script>
+<script>
+/* ============================================================
+   SIGN IN — only Nuflow Community Hub (Circle) members can use the app.
+   The sign-in worker (auth-worker/worker.js on Cloudflare) checks the
+   email against Circle and emails a 6-digit code.
+
+   AUTH_API: paste the worker's address here once it's deployed.
+   Leave it empty ('') to switch sign-in off (app opens for everyone).
+   ============================================================ */
+const AUTH_API = 'https://nuflow-app-auth.james-d5c.workers.dev';
+const AUTH_KEY = 'nf_auth_v1';
+const OFFLINE_GRACE_DAYS = 30;   // how long the app stays usable without being able to re-check
+const RECHECK_HOURS = 12;        // re-check membership at most this often when online
+
+const Auth = (() => {
+  const $ = s => document.querySelector(s);
+  const DAY = 864e5;
+  let pendingEmail = '';
+  let resendTimer = null;
+
+  const load = () => { try { return JSON.parse(localStorage.getItem(AUTH_KEY)) || null; } catch (e) { return null; } };
+  const save = a => { try { localStorage.setItem(AUTH_KEY, JSON.stringify(a)); } catch (e) {} };
+  const clear = () => { try { localStorage.removeItem(AUTH_KEY); } catch (e) {} };
+
+  async function api(path, body) {
+    const res = await fetch(AUTH_API.replace(/\/+$/, '') + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    let data = {};
+    try { data = await res.json(); } catch (e) {}
+    return { status: res.status, data };
+  }
+
+  /* ── Screen ─────────────────────────────────────────── */
+  function show(reason) {
+    const el = $('#signin');
+    const logo = document.querySelector('#splash .wordmark img');
+    if (logo && !$('#siLogo').src) $('#siLogo').src = logo.src;
+    el.classList.remove('leaving');
+    el.classList.add('show');
+    el.setAttribute('aria-hidden', 'false');
+    step('email');
+    if (reason) msg(reason, 'info'); else msg('');
+  }
+  function hide() {
+    const el = $('#signin');
+    if (!el.classList.contains('show')) return;
+    el.classList.add('leaving');
+    setTimeout(() => { el.classList.remove('show', 'leaving'); el.setAttribute('aria-hidden', 'true'); }, 450);
+  }
+  function step(which) {
+    $('#siStepEmail').classList.toggle('on', which === 'email');
+    $('#siStepCode').classList.toggle('on', which === 'code');
+    if (which === 'code') { $('#siCode').value = ''; setTimeout(() => $('#siCode').focus(), 350); }
+  }
+  function msg(text, kind = 'err') {
+    const m = $('#siMsg');
+    m.textContent = text || '';
+    m.className = 'si-msg' + (text ? ' show ' + kind : '');
+  }
+  function busy(btn, on) { btn.disabled = on; btn.classList.toggle('busy', on); }
+
+  function startResendCountdown() {
+    const b = $('#siResend');
+    let s = 30;
+    clearInterval(resendTimer);
+    b.disabled = true; b.textContent = `Resend in ${s}s`;
+    resendTimer = setInterval(() => {
+      s -= 1;
+      if (s <= 0) { clearInterval(resendTimer); b.disabled = false; b.textContent = 'Resend code'; }
+      else b.textContent = `Resend in ${s}s`;
+    }, 1000);
+  }
+
+  /* ── Steps ──────────────────────────────────────────── */
+  async function requestCode(email) {
+    if (!navigator.onLine) { msg("You're offline. Signing in needs signal — once you're in, the tools work offline."); return false; }
+    const btn = $('#siSend');
+    busy(btn, true); msg('');
+    try {
+      const { status, data } = await api('/start', { email });
+      if (status === 200) {
+        pendingEmail = data.email || email;
+        $('#siSentTo').textContent = pendingEmail;
+        step('code');
+        startResendCountdown();
+        return true;
+      }
+      msg(data.message || 'Something went wrong. Please try again.');
+    } catch (e) {
+      msg("Couldn't reach the sign-in service. Check your signal and try again.");
+    } finally { busy(btn, false); }
+    return false;
+  }
+
+  async function verifyCode(code) {
+    const btn = $('#siVerify');
+    busy(btn, true); msg('');
+    try {
+      const { status, data } = await api('/verify', { email: pendingEmail, code });
+      if (status === 200 && data.session) {
+        save({ session: data.session, member: data.member, circle: data.circle, checkedAt: Date.now() });
+        applyMember(data.member);
+        buzz();
+        hide();
+        return;
+      }
+      msg(data.message || "That code didn't work. Try again.");
+      if (data.error === 'code_expired') { $('#siCode').value = ''; }
+    } catch (e) {
+      msg("Couldn't reach the sign-in service. Check your signal and try again.");
+    } finally { busy(btn, false); }
+  }
+
+  /* ── Background re-check ────────────────────────────── */
+  async function recheck(force) {
+    const a = load();
+    if (!a || !navigator.onLine) return;
+    if (!force && Date.now() - (a.checkedAt || 0) < RECHECK_HOURS * 36e5) return;
+    try {
+      const { status, data } = await api('/session', { session: a.session });
+      if (status === 200) {
+        a.member = data.member || a.member;
+        a.circle = data.circle || a.circle;
+        a.checkedAt = Date.now();
+        save(a);
+        applyMember(a.member);
+      } else if (status === 401) {
+        clear();
+        show(data.error === 'not_member'
+          ? 'Your Community Hub access has ended, so you have been signed out. Contact Nuflow head office if this is a mistake.'
+          : 'Please sign in again.');
+      }
+      // 503 / other: Circle or network hiccup — keep the current session
+    } catch (e) { /* offline or blocked — keep the current session */ }
+  }
+
+  /* ── Personalise ────────────────────────────────────── */
+  function applyMember(m) {
+    if (!m) return;
+    const first = (m.name || '').trim().split(/\s+/)[0];
+    const g = document.querySelector('#greeting');
+    if (g && first) g.textContent = g.textContent.replace(/,\s*[^,]*\.$/, `, ${first}.`);
+    const av = document.querySelector('#acctAv');
+    if (av) {
+      av.textContent = (first || m.email || '?').charAt(0).toUpperCase();
+      document.querySelector('#acctName').textContent = first ? (m.name || first) : 'Signed in';
+      document.querySelector('#acctEmail').textContent = m.email || '';
+      document.querySelector('#acctCard').style.display = '';
+    }
+  }
+
+  async function signOut() {
+    const a = load();
+    clear();
+    const card = document.querySelector('#acctCard');
+    if (card) card.style.display = 'none';
+    if (a && navigator.onLine) api('/signout', { session: a.session }).catch(() => {});
+    show('You have been signed out.');
+  }
+
+  /* ── Wire up ────────────────────────────────────────── */
+  function init() {
+    if (!AUTH_API) return;   // sign-in switched off
+
+    $('#siStepEmail').addEventListener('submit', e => {
+      e.preventDefault();
+      const email = $('#siEmail').value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { msg('Enter a valid email address.'); return; }
+      requestCode(email);
+    });
+    $('#siStepCode').addEventListener('submit', e => {
+      e.preventDefault();
+      const code = $('#siCode').value.replace(/\D/g, '');
+      if (code.length !== 6) { msg('Enter the 6-digit code from the email.'); return; }
+      verifyCode(code);
+    });
+    $('#siCode').addEventListener('input', e => {
+      const v = e.target.value.replace(/\D/g, '').slice(0, 6);
+      e.target.value = v;
+      if (v.length === 6) verifyCode(v);   // auto-submit when complete / pasted
+    });
+    $('#siBack').addEventListener('click', () => { msg(''); step('email'); setTimeout(() => $('#siEmail').focus(), 350); });
+    $('#siResend').addEventListener('click', () => requestCode(pendingEmail));
+    const out = document.querySelector('#acctOut');
+    if (out) out.addEventListener('click', signOut);
+
+    const a = load();
+    if (!a || !a.session) {
+      show();
+    } else if (Date.now() - (a.checkedAt || 0) > OFFLINE_GRACE_DAYS * DAY && !navigator.onLine) {
+      show(`It's been over ${OFFLINE_GRACE_DAYS} days since the app could check your Community Hub access. Connect to signal and sign in again.`);
+    } else {
+      applyMember(a.member);
+      recheck(Date.now() - (a.checkedAt || 0) > OFFLINE_GRACE_DAYS * DAY);
+    }
+
+    window.addEventListener('online', () => recheck(false));
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) recheck(false); });
+  }
+
+  return { init, signOut, get member() { const a = load(); return a && a.member; },
+           get circleToken() { const a = load(); return a && a.circle && a.circle.access_token; } };
+})();
+Auth.init();
+</script>
+
 <script>
 /* Online / offline indicator — field tools keep working offline */
 (function(){
