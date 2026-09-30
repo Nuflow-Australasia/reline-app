@@ -4,7 +4,7 @@
      after a few seconds and uses the saved copy (handy on patchy job-site signal).
    - Circle, the shop and other sites always go straight to the network.
    Bump CACHE when you want to force-clear old copies. */
-const CACHE = 'nuflow-tech-v7';
+const CACHE = 'nuflow-tech-v9';
 const NET_TIMEOUT = 3500; // ms to wait on a slow connection before using the saved copy
 
 const SHELL = [
@@ -14,20 +14,19 @@ const SHELL = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
-  './tools/resin_usage_calculator.html',
-  './tools/resin-cure-times.html',
-  './tools/nuflow-bladder-pressure.html',
-  './tools/nuflow-safe-depth-html.html',
-  './tools/impregliner_uv_curing.html'
+  './resin.html',
+  './cure.html',
+  './bladder.html',
+  './depths.html',
+  './uv.html'
 ];
 
 // Logos and fonts the tools load from other sites — saved so tools look right offline
 const EXTERNAL = [
-  'https://nuflow.net/wp-content/uploads/2022/05/Nuflow-Logo-Pos-RGB.png',
   'https://www.impreg.de/wpi/wp-content/uploads/2020/12/impreg-group-white.svg',
-  'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;900&display=swap'
+  'https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap'
 ];
-const ASSET_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'nuflow.net', 'www.impreg.de'];
+const ASSET_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'www.impreg.de'];
 
 self.addEventListener('install', e => {
   e.waitUntil((async () => {
