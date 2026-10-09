@@ -17,7 +17,8 @@ Use Australian English in all user-facing text.
   The `CNAME` file in the repo is harmless; leave it alone.
 - `.github/workflows/deploy.yml` runs on every push to `main`, every 30 minutes on a
   schedule, and on demand ("Run workflow"). It:
-  1. copies the repo into `_site/` (excluding `.git`, `.github`, `scripts`)
+  1. copies the repo into `_site/` (excluding `.git`, `.github`, `scripts`, and the
+     internal files `README.md`, `CLAUDE.md` and `home` so they aren't public on the site)
   2. runs `scripts/fetch-posts.mjs` to write `_site/posts.json`
   3. deploys `_site/` to Pages
 - GitHub pauses scheduled workflows after 60 days with no commits. If Home posts go
@@ -32,7 +33,11 @@ The site, the repo (if public) and `posts.json` can all be read by anyone.
 - **Never** put API keys, tokens or passwords in any file that ships to the browser.
 - The only secret is `CIRCLE_API_TOKEN` (Circle Admin API v2), stored as a GitHub
   Actions secret and used only by `scripts/fetch-posts.mjs` at build time.
-- Do not add personal names to the UI. Contact cards show roles only.
+- The sign-in worker address (`AUTH_API` in `index.html`) is public by design; the
+  worker holds its own secrets on Cloudflare.
+- Do not add personal names to the UI, **except** the Contact us team list, which James
+  approved (name, role, email, phone; no responsibilities). The signed-in account card
+  shows the member's own email only, not their name.
 
 ---
 
@@ -51,18 +56,19 @@ The site, the repo (if public) and `posts.json` can all be read by anyone.
 | `redline.html` | Redline calculator. **Removed from the app on purpose**; may still exist in the repo. Don't re-add it unless James asks |
 | `scripts/fetch-posts.mjs` | Build-time script that pulls latest Circle posts into `posts.json` |
 | `.github/workflows/deploy.yml` | Deploy + scheduled refresh |
-| `home/` | Purpose not documented. Ask James before changing or deleting |
+| `home` | A single HTML file (no extension), titled "Nuflow Technician — Design Prototype". Not deployed. Ask James before changing or deleting |
 
 The tools were redesigned in the app's dark style and these file names are final.
 The old light versions live in James's "Light Webtools" folder and in the separate
-`nuflow-tools` repo; **the app no longer uses `nuflow-tools`**. Edit tools here.
+`nuflow-tools` repo; **the app no longer uses `nuflow-tools`** (the deploy no longer
+pulls it either). Edit tools here.
 
 ---
 
 ## Release checklist (every change that ships)
 
 1. **Bump the cache version** in `sw.js`: `const CACHE = 'nuflow-tech-vN'`
-   (currently `v9`). Without this, installed phones keep serving old files.
+   (currently `v12`). Without this, installed phones keep serving old files.
 2. If a tool is added, renamed or removed, update **both**:
    - the `TOOLS` array in `index.html`
    - the `SHELL` list in `sw.js` (so it's saved for offline use)
@@ -76,6 +82,22 @@ three together.
 ---
 
 ## How the app works
+
+### Sign-in (members only, live)
+- Before using the app, people sign in with their Community Hub email and a 6-digit
+  code that's emailed to them. The second `<script>` block in `index.html` (`Auth`)
+  handles this.
+- It talks to a Cloudflare Worker at `AUTH_API`
+  (`https://nuflow-app-auth.james-d5c.workers.dev`), which uses the endpoints `/start`,
+  `/verify`, `/session` and `/signout`. The worker checks Circle membership and sends
+  the code. Its source (`auth-worker/worker.js`) is **not in this repo**.
+- The session is stored in localStorage as `nf_auth_v1` and holds only the session,
+  the member and `checkedAt`. Don't store Circle access tokens on the phone.
+- Membership is re-checked at most every **12 h** when online. The app stays usable
+  for **30 days** without a re-check, and after that it asks the member to sign in again.
+- Set `AUTH_API = ''` to switch sign-in off.
+- A phone that has **never** signed in needs signal for the first sign-in. Only after
+  that do the tools work offline.
 
 ### Navigation
 Five tabs: Home, Tools, Docs, Community, More.
@@ -127,7 +149,9 @@ Five tabs: Home, Tools, Docs, Community, More.
 ### More tab
 - "Learn" (Circle courses) is **greyed out on purpose** with `soon:true`. Leave it
   disabled until James says to switch it on (then remove `soon:true`).
-- Contacts show roles only ("Product orders & information", "Technical support").
+- Contact us: a "Head office" card (office line + admin@), then the team from the
+  `CONTACTS` array in `index.html` (`n` name, `r` role, `e` email, `p` phone). Edit
+  that array to update staff details. Responsibilities are left out on purpose.
 
 ---
 
@@ -139,6 +163,9 @@ Five tabs: Home, Tools, Docs, Community, More.
   `--redline #F0534E`, plus `--nuvline` and `--nublue`.
 - Product colours mean something: Redline red belongs to Redline, Pressureline
   orange to Pressureline, and so on. Don't reuse a product colour for an unrelated item.
+  (Some existing items still use the product palette for variety, e.g. orange on cure
+  times, safety documents and Marketing, and orange for the offline dot. Red is no
+  longer used outside Redline.)
 - Keep new screens consistent with existing components (cards, row items, pills).
 
 ---
@@ -148,7 +175,9 @@ Five tabs: Home, Tools, Docs, Community, More.
 - Syntax-check the inline JS (extract `<script>` blocks and run `node --check`),
   plus `node --check sw.js`.
 - Serve locally (`python3 -m http.server`) with a stub `posts.json` and test at
-  ~400×860 in a headless browser:
+  ~400×860 in a headless browser. To get past sign-in, put a stub session in
+  localStorage (`nf_auth_v1` = `{"session":"x","member":{"email":"a@b.c"},"checkedAt":<now>}`).
+  Then check:
   - every tool opens in the viewer
   - with the network switched **off** after first load, the tools still open and
     the pill shows offline
@@ -158,10 +187,9 @@ Five tabs: Home, Tools, Docs, Community, More.
 
 ## Roadmap (context, not current tasks)
 
-- **Members-only sign-in (decided, not built):** sign in with Community Hub email +
-  emailed code via **Circle Headless Auth**; server on **Cloudflare Workers**;
-  code emails via **Resend**; members stay signed in for up to **30 days offline**.
-  Nuflow's Circle plan includes Headless Auth tokens.
+- **Members-only sign-in: now live** (see "Sign-in" above). It uses Circle Headless
+  Auth, Cloudflare Workers and Resend. Next step: keep the worker source in version
+  control.
 - **Native app:** Capacitor (Ionic) builds for iOS and Android, replacing the old
   Gappsy app (pulled from Google Play in Jul 2025). Keep the web app
   Capacitor-friendly: relative paths, no server-only features.
