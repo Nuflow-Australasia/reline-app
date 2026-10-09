@@ -35,8 +35,9 @@ The site, the repo (if public) and `posts.json` can all be read by anyone.
   Actions secret and used only by `scripts/fetch-posts.mjs` at build time.
 - The sign-in worker address (`AUTH_API` in `index.html`) is public by design; the
   worker holds its own secrets on Cloudflare.
-- Do not add personal names to the UI. Contact cards show roles only. The signed-in
-  account card shows the member's own email only, not their name.
+- Do not add personal names to the UI, **except** the Contact us team list, which James
+  approved (name, role, email, phone; no responsibilities). The signed-in account card
+  shows the member's own email only, not their name.
 
 ---
 
@@ -67,7 +68,7 @@ pulls it either). Edit tools here.
 ## Release checklist (every change that ships)
 
 1. **Bump the cache version** in `sw.js`: `const CACHE = 'nuflow-tech-vN'`
-   (currently `v11`). Without this, installed phones keep serving old files.
+   (currently `v12`). Without this, installed phones keep serving old files.
 2. If a tool is added, renamed or removed, update **both**:
    - the `TOOLS` array in `index.html`
    - the `SHELL` list in `sw.js` (so it's saved for offline use)
@@ -148,7 +149,9 @@ Five tabs: Home, Tools, Docs, Community, More.
 ### More tab
 - "Learn" (Circle courses) is **greyed out on purpose** with `soon:true`. Leave it
   disabled until James says to switch it on (then remove `soon:true`).
-- Contacts show roles only ("Product orders & information", "Technical support").
+- Contact us: a "Head office" card (office line + admin@), then the team from the
+  `CONTACTS` array in `index.html` (`n` name, `r` role, `e` email, `p` phone). Edit
+  that array to update staff details. Responsibilities are left out on purpose.
 
 ---
 

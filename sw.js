@@ -4,7 +4,7 @@
      after a few seconds and uses the saved copy (handy on patchy job-site signal).
    - Circle, the shop and other sites always go straight to the network.
    Bump CACHE when you want to force-clear old copies. */
-const CACHE = 'nuflow-tech-v11';
+const CACHE = 'nuflow-tech-v12';
 const NET_TIMEOUT = 3500; // ms to wait on a slow connection before using the saved copy
 
 const SHELL = [
