@@ -776,8 +776,8 @@ nav{
       <div class="page-scroll">
         <div class="stagger">
           <div class="page-intro" style="--i:0">
-            <h1>Documents</h1>
-            <p>Safety data, technical sheets, forms and checklists — straight from the document library.</p>
+            <h1 id="docTitle">Documents</h1>
+            <p id="docSub"></p>
           </div>
           <div class="rows" id="docRows" style="--i:1"></div>
         </div>
@@ -957,22 +957,159 @@ const TOOLS = [
    i:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'},
 ];
 
-const DOCS = [
-  {t:'Safety data sheets', d:'SDS for all resins & chemicals', c:'var(--nublue)',
-   u:'https://shop.nuflow.net/documents/category/2',
-   i:'<path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z"/><path d="M9.5 12l2 2 3.5-4"/>'},
-  {t:'Technical data sheets', d:'Product specs & performance', c:'var(--blueliner)',
-   u:'https://shop.nuflow.net/documents/category/5',
-   i:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/>'},
-  {t:'Safety documents', d:'SWMS, procedures & policies', c:'var(--pressureline)',
-   u:'https://shop.nuflow.net/documents/category/40',
-   i:'<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>'},
-  {t:'Forms', d:'Job & reporting forms', c:'var(--nugreen)',
-   u:'https://shop.nuflow.net/documents/category/15',
-   i:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/>'},
-  {t:'Checklists', d:'Pre-start & QA checklists', c:'var(--nupine)',
-   u:'https://shop.nuflow.net/documents/category/16',
-   i:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="m8 10 2 2 3.5-4M8 17h8"/>'},
+// Documents tab: mirrors the shared Google Drive DOCUMENTS folder (Superseded left out).
+// Folders have k (contents); files have id (Google Drive file ID). c/d set on top-level folders only.
+const DOC_TREE = [
+  {t:"Documents", c:'var(--nugreen)', d:"Guides, checklists, forms & safety documents", k:[
+    {t:"Checklists", k:[
+      {t:"Nuflow Training Installation Checklist", id:'17LOoouwuvT6mt-4GfWslsyWYR8ndgnD6'},
+      {t:"Pre-install Checklist", id:'1FzBRH9DuqxVGvybt6zzqM-a6b-nUMQY1'}
+    ]},
+    {t:"Forms", k:[
+      {t:"Equipment Hire Form", id:'1bO8NnScTkSTbk85Vuf_W0USpyi6FjZ8i'},
+      {t:"Liner Design Verification Form", id:'1bK14DefE5S6g08pl0Bi4RwO47nbfzgoC'},
+      {t:"Manhole Inspection Sheet", id:'1o4U0IXvmcOLihSOdypsDPh1Tv5f2CFvp'},
+      {t:"Manhole Liner Design Verification Form", id:'15qso4I-TweffKnUv_d0zYlGJkvoI9bRU'},
+      {t:"NUVLINE Vehicle and Equipment Hire with Operator Agreement", id:'1rRVBdfyeaJJL5aB2fOsgi6s9PfGaQk8p'},
+      {t:"Quality Assurance Product Enquiry Form", id:'1rpSMGAbJmctlcZFLxzl34GiIV0x_LA2E'},
+      {t:"Steam Generator Equipment Hire with Operator Agreement", id:'1nFiOcTZQ1VpYAw24Ajq-SxFtsuLrlA4a'},
+      {t:"Technical Assistant Agreement", id:'17ek8bPBAFWqxMEctky3CCnUZNGm8nbYX'},
+      {t:"Warranty Claim Form", id:'1mPvtArd4LkYqtJKUXmhE_4ozz0CRj_56'}
+    ]},
+    {t:"Guides", k:[
+      {t:"2025 Reline RRP Price Guide", id:'1DZCMSi-5AO_so07mUedWu8B4dMXzdbtw'},
+      {t:"Liner Design Verification Example", id:'1bTd2McKknE43Whu2YH2YTaC_LIgmOx59'},
+      {t:"Nuflow IQ Entry EXAMPLE", id:'1BXldHm4G5SungT0Zs-nwlFIOA1fnvbVU'},
+      {t:"Nuflow Warranty EXAMPLE", id:'1x_ZmbVjq9Lfhb1y_20UWWq0ZV5CE70p0'}
+    ]},
+    {t:"Safety Documents", k:[
+      {t:"Safe Handling of Epoxy resins", id:'1xrjJyJ_Bl1cWH75XlrE-DpMCPeAuaubK'},
+      {t:"Template - Inspection and Test Plan - CIPP", id:'1R3NpppFMuecylu5S-ydn7GlrwAmN_CMr'},
+      {t:"Template - Inspection and Test Plan - Manhole", id:'1K-cw-bE4AeM0iQ0S1-5zOqk5JzLk738R'}
+    ]}
+  ]},
+  {t:"Processes", c:'var(--blueliner)', d:"Procedures & installation methodologies", k:[
+    {t:"Methodologies", k:[
+      {t:"Blueline - High Pressure Installation Methodology", id:'15pTNjBLoOEgBxpEgG-EyEYO72Lx6ya-8'},
+      {t:"Blueline - HTAR Methodology", id:'1SJBvNZjdr4B9jzxHi1O7vDfd4yPoLY2V'},
+      {t:"Blueline - In Presence of Water Methodology", id:'19Ik5czZh5dRYRlLCNHACVVQwpdxgLvOF'},
+      {t:"Blueline - Methodology", id:'1lEIQadETSm6nnlvACPiQX5_xdLMCVn_P'},
+      {t:"Blueline Big Bore Installation", id:'1NvcQRRsaXkC28d1irH0lLM98n7Ok4CHN'},
+      {t:"Greenline - Methodology", id:'1TCje29_t7_VpoDhT7gHKM_W7-QLKoQ-U'},
+      {t:"HTAR Liner Curing & Post-Cure Process", id:'1pKUF_kg_agRrxpfNdiDgDhiqSszfRTrp'},
+      {t:"Manhole - Benching Methodology", id:'1s52o524f19bFauRN3btPJzzZnyCKKAaq'},
+      {t:"Manhole - Rehabilitation Methodology", id:'1qRXO9XdwObf1SBlKDctu75cOenY3pYdA'},
+      {t:"Nu-VLine Installation Methodology", id:'182ITi2lzTtI-7Bhn5MmC-Fr0Us9650sK'},
+      {t:"Nuflow Steam Unit Small SOP", id:'1cahjjhs50ig2wSchQOmwuK46xISmxU-J'},
+      {t:"Redicure V2.0 Manual", id:'11RTUYFeQzGmQAxxq4kW20CeI_gBpDD1X'},
+      {t:"Redline - Methodology", id:'1DYYxG6n_Iq017FV2Pxp8aJIJh0YfFgrL'}
+    ]},
+    {t:"Procedures", k:[
+      {t:"Impreg Installation Manual", id:'15Uzwx6Ybe3S_0KF2wsf6D6kxddsuEB6O'},
+      {t:"Impreg Liner Curing Parameters", id:'1PD0YWVhcVMSwLv2BgA9a2yjtXQTkLMDI'},
+      {t:"PRO-REL-002 Site Establishment", id:'1bkRhJ7-5hSufl-dbnOl6fRPiMEXFTw2c'},
+      {t:"PRO-REL-003 On Site Customer Communication", id:'1FLZ8Orq6DPWk13Ne6_9_rYlShvo3bUsw'},
+      {t:"PRO-REL-004 CCTV Pre Footage", id:'1K7N6jJYy62WUIKIauS6pVKfjYi-8kp06'},
+      {t:"PRO-REL-005 Water Jetter", id:'1qWZNfkW9meQ5Oe0lq6i1uHcZtOcfqoK4'},
+      {t:"PRO-REL-006 Standard Rubber Bladder Assembly", id:'1kE0wOlfkEdlxovaiKqYnrW5yTwgSc65k'},
+      {t:"PRO-REL-007 Making a Vinyl Bladder", id:'14feLkqHHPdY0VP5sy-4RjXj_kD_iHKc_'},
+      {t:"PRO-REL-008 Choosing Your Resin", id:'1y7Hpu0DRG21E_jl8dMt-2q1BHdhu55qT'},
+      {t:"PRO-REL-009 Chemical Mixing", id:'1TaWNlqcHPGwpMQT8ipSdSGB8LdgZrzLS'},
+      {t:"PRO-REL-010 Wetting Out Liner", id:'1AbOlPNR2EC5FMyPk7FybgaCkOg3YGUy7'},
+      {t:"PRO-REL-011 Pulling Bladder Through Wet Out Liner", id:'1p_N1LE92Fyz3U30_hV-WlE89EAmnUvyS'},
+      {t:"PRO-REL-012 Taping up a Liner", id:'1-oPz1tYd-W5_zdwGeF3jfHjhiVXWF79L'},
+      {t:"PRO-REL-013 Pulling In & Positioning of Liner", id:'1sUUPPk9IlWhLESisdBUUScWe4Tr-Un6W'},
+      {t:"PRO-REL-014 Wetting Out an LCL", id:'1riZacxtHWp2iDYkcYW6BdgL6FuS3ic1z'},
+      {t:"PRO-REL-015 Pulling LCL Bladder Through Liner", id:'164gRtgazbtLUM2sPwiZqANK5X8oA8keP'},
+      {t:"PRO-REL-016 Taping Up an LCL", id:'1YHhsps8QsxjLpR4xvU5nemaJib4RZJXa'},
+      {t:"PRO-REL-017 Removing Bladder", id:'1yMueKs7BUIPznJ39JQF9y0hmLy9g1A6V'},
+      {t:"PRO-REL-018 CCTV Post Footage", id:'1vQWAS4mciBGjdrnCj7UoTR2jCaD7kRAR'},
+      {t:"PRO-REL-023 LCL Rubber Bladder Assembly", id:'1LbFPxAvmbXkEHuSBS_h_5eCBjHemJsuE'},
+      {t:"PRO-REL-050 Operating a Poly Inverter", id:'1F0cfEyYrkkziopPQcAp_8YEPRv51giTr'}
+    ]}
+  ]},
+  {t:"Safety Data Sheets", c:'var(--nublue)', d:"SDS for all resins & chemicals", k:[
+    {t:"CrocMate SDS", k:[
+      {t:"CrocMate SDS - Benching Buddy Part A", id:'1BeKosQQPtpuAZ5qsZzN2r9PCYOPtYkVL'},
+      {t:"CrocMate SDS - Benching Buddy Part B", id:'1VQZ95zweTJQSA_kOZ3ae5i0pwvD9Rpmt'},
+      {t:"CrocMate SDS - Benching Buddy Part C", id:'1f2m_NctBxUodQkY54qHteCUe1IXHGQFw'},
+      {t:"CrocMate SDS - Croc-Crete Standard", id:'1yYrPNPx0LrHx-Ygk0hZTaCjlfvskmf1-'},
+      {t:"CrocMate SDS - Croc-Crete Ultra", id:'19ikKf6-qNM1wY8dc143I7bwLTfcH-ZCT'},
+      {t:"CrocMate SDS - Grease Grenade", id:'110XS2HcZOMz4bYXn2-8ba_4z9vHEYNts'},
+      {t:"CrocMate SDS - Grout Away", id:'13Wjs8UW2ern4j0ZERJGW4DTQHLJ3XNgM'},
+      {t:"CrocMate SDS - Smooth Coat Part A", id:'1NUKn8PyT3-JNx2aqZ5qoAh15I8iqBtaa'},
+      {t:"CrocMate SDS - Smooth Coat Part B", id:'1PZEE1nf4fxUJTsy4M9k9A0qEvH1uQZk2'},
+      {t:"CrocMate SDS - Smooth Trowel Part A", id:'1HXGExnkxrIMA7vtlkgh6oBZpsLSA6qCx'},
+      {t:"CrocMate SDS - Smooth Trowel Part B", id:'12GGeu-k_1KB3D1JWx3Gks4Au5S7i79_e'}
+    ]},
+    {t:"Impreg SDS", k:[
+      {t:"Impreg SDS - GL16 Liner", id:'1KD9kUTNoeOVvQLkJ9a4puwSwh42Ut7Ck'}
+    ]},
+    {t:"Nuflow SDS", k:[
+      {t:"NUFLOW SDS - Blueline Delayed Cure Part B", id:'1_hrPyd-uVD0oFCbJ8BfSdOqd2Ofb9q8l'},
+      {t:"NUFLOW SDS - Blueline Easy Wet Part A", id:'1_JvSPueZK2K-Ve9ZpNEf03QHzGsysrMp'},
+      {t:"NUFLOW SDS - Blueline High Temp Acid Resistant Normal Part B", id:'15j0OVBU0X8yhwH1K24EhaId6ZACZmUGP'},
+      {t:"NUFLOW SDS - Blueline High Temp Acid Resistant Part A", id:'1jvuqK7dMh6ylj5aSZScNAoVgm2RVmewP'},
+      {t:"NUFLOW SDS - Blueline High Temp Acid Resistant Slow Part B", id:'1BngRvT8dGL_2FSVCZE2RDu3sihFDF8j1'},
+      {t:"NUFLOW SDS - Blueline High Wear High Impact Part A", id:'1erTAju4da9hwC_tWxQ4JVh9kvm-UU6Ri'},
+      {t:"NUFLOW SDS - Blueline High Wear High Impact Part B", id:'1HY1dLi7jDMWs05DptL7cU8GPym5KJCea'},
+      {t:"NUFLOW SDS - Blueline Latent Cure Part A", id:'1yj9cdt5o4u1AJcmIQmZxNyQ090df_FOb'},
+      {t:"NUFLOW SDS - Blueline Latent Cure Part B", id:'1RAbAr4iB0ze6Qgg06pQF2x46JPQp9S4J'},
+      {t:"NUFLOW SDS - Blueline Standard Fast Part B", id:'1jMGq6A6xJzJlYIhG5VMgpzBz56PqMHT8'},
+      {t:"NUFLOW SDS - Blueline Standard Normal Part B", id:'1oeUksxcm8jZf4hEaQL_EOZ_v6PdPCe3p'},
+      {t:"NUFLOW SDS - Blueline Standard Part A", id:'1LcIy_irHyS5zTR8qus6Rr-2GDIv6JxOR'},
+      {t:"NUFLOW SDS - Blueline Standard Slow Part B", id:'1uLM9ldXvORiyyaZfMfypE6_b6UU9S9e4'},
+      {t:"NUFLOW SDS - Blueline Standard Ultra-Fast Part B", id:'1tim5s2aVmmaTqs9G2XXR_P5nasL0pVwW'},
+      {t:"NUFLOW SDS - Blueline Standard Ultra-Slow Part B", id:'1sZUjb3SoYa-viokpJiRGAvy2cRQtCf77'},
+      {t:"NUFLOW SDS - Blueline Underwater Fast Part B", id:'1w-MGEpdKzPg9RVkwdnhuneCONsLyZIUV'},
+      {t:"NUFLOW SDS - Blueline Underwater Normal Part B", id:'1vJRZUF97D4auXIDn7y5gTzKHSmAeJ5LV'},
+      {t:"NUFLOW SDS - Blueline Underwater Slow Part B", id:'1izlV-cJHxn4-oRyqXrpVgh0naA0Y1Pok'},
+      {t:"NUFLOW SDS - Greenline Potable Normal Part B", id:'1_94QvepiNUNC10eawW7vkU8jLVNXUndY'},
+      {t:"NUFLOW SDS - Greenline Potable Part A", id:'1TSRlhAGherEID-9TT57vZntmuuGDMoNU'},
+      {t:"NUFLOW SDS - Greenline Potable Slow Part B", id:'1_TOjE8Xhth2SdIocoY5DF2ANJlQK94YP'},
+      {t:"NUFLOW SDS - Nucoat High Temp Acid Resistant Slow Part B", id:'1seQxj7EzhgqyoadBuezX6QCmoRY8rG4j'},
+      {t:"NUFLOW SDS - Nucoat Part A", id:'1hq7Fov5_VMzFfw9stQIDH6sUlTxye_La'},
+      {t:"NUFLOW SDS - Redline Standard Part A", id:'11uHv6etrO6JjFVgfSVuXJ213uTJEEkpd'},
+      {t:"NUFLOW SDS - Redline Standard Part B", id:'1Zbgjs5HNcJHqS6e0tl6cjpLTS0GrQgpu'}
+    ]}
+  ]},
+  {t:"Technical Data Sheets", c:'var(--nupine)', d:"Product specs & performance", k:[
+    {t:"ASOE TDS", k:[
+      {t:"TDS - Pressureline ASOE Pipe-in Liner W", id:'15kvpdhECP5lG-0xcZ8VcYTlA6kt00IvD'}
+    ]},
+    {t:"Croc Mate TDS", k:[
+      {t:"Crocmate Smooth Coat TDS", id:'120STVvAkrjSP8w0fIvRy2O1zVCJRwyhG'},
+      {t:"Crocmate Smooth Trowel TDS", id:'1CzzXz0vOgpGaaUEwEPb1HQeJcCIlo5Hx'}
+    ]},
+    {t:"IBG Hydrotech TDS", k:[
+      {t:"IBG16 HydroTech TDS", id:'1Vey88Gkz51yo4Ivx8O-NypAYP2PHOVn0'}
+    ]},
+    {t:"Impreg TDS", k:[
+      {t:"TDS - NUVLINE IMPREG GL16", id:'1-qKXDg2zpT7v97IYDxa1YZ93Ok6Nkmdb'}
+    ]},
+    {t:"Nuflow TDS", k:[
+      {t:"Liner + Resin Compatibility & Selection Chart", id:'1BXSVxICXlgo516_j4tGa657vqwp2vuAO'},
+      {t:"Nuflow TDS - Blueline HTAR", id:'1IdiVYwSXzvw937yxGiHXu9uuM4keyX7S'},
+      {t:"Nuflow TDS - Blueline Standard", id:'1BqRI7Qa_129bxr-S965BuGOqH3KKqjux'},
+      {t:"Nuflow TDS - Blueline X", id:'15a7SDBaHbOHvgn7vue63I3-BlkuVIgHu'},
+      {t:"Nuflow TDS - Blueline XS Small Bore", id:'1oWzMkIWO_-VX9VSYfdStD0UVYuO6Ul6R'},
+      {t:"Nuflow TDS - Nucoat", id:'1stcCf3DDebZ6t2y_qIQxsYyK6BFTI-0U'},
+      {t:"Nuflow TDS - Pressureline X", id:'1e-H9ETTrkVXLmiavpu0UcLdgHozLSOd0'},
+      {t:"Nuflow TDS - Pressureline XL", id:'1IMuNVu0vrfdUGKXuTp2zleg3TvSUkgv-'},
+      {t:"Nuflow TDS - Pressureline XXL", id:'1ZHOnmhb44gEOuUHVJEXjXAtRRhuRSNqC'},
+      {t:"Nuflow TDS - Redline", id:'1ZxsxtCKIuL0Mt06wu2T5Fi7ZhlOtv3AE'},
+      {t:"Nuflow TDS - Sumoline X", id:'1TBRzh0YqxZ0aJ7FEgcmr37-ipSHGTN6D'},
+      {t:"Nuflow TDS - Sumoline XL", id:'1q43dD83Hhdf88j6stTBlR33A6zM-ncDq'},
+      {t:"Nuflow TDS - Sumoline XXL", id:'1vDxo6G6IgdnT8jDDLu2hSlYbcnJc0S-N'}
+    ]},
+    {t:"Pipa TDS", k:[
+      {t:"Flowrider Lite TDS", id:'1cnLZkVxF5mOevBUgO3vta9IzJB7KNrUJ'},
+      {t:"Pipa Flowrider TDS", id:'1K2mZx3lTXmh-MHX07tKuPmdu_UhFiQuZ'}
+    ]},
+    {t:"Smart Lock TDS", k:[
+      {t:"Smart Lock TDS", id:'1N870Po-bz2b6eGPXgDRWPmmdVlI9Idhh'}
+    ]}
+  ]}
 ];
 
 const MORE = [
@@ -1114,9 +1251,14 @@ document.querySelectorAll('.tab').forEach(t =>
   t.addEventListener('click', () => {
     // Community tab always returns to the feed (e.g. after opening a post from Home)
     if (t.dataset.page === 'community') loadCommunity(COMM_URL);
+    // Docs tab always returns to the top-level folders
+    if (t.dataset.page === 'docs' && docPath.length) { docPath = []; renderDocs(); restagger('docs'); }
     showPage(t.dataset.page);
   }));
-$('#backBtn').addEventListener('click', () => backTarget && showPage(backTarget));
+$('#backBtn').addEventListener('click', () => {
+  if (currentPage === 'docs' && docPath.length) { buzz(); docPath.pop(); renderDocs(); restagger('docs'); return; }
+  backTarget && showPage(backTarget);
+});
 document.querySelectorAll('[data-goto]').forEach(el =>
   el.addEventListener('click', () => showPage(el.dataset.goto)));
 
@@ -1132,14 +1274,42 @@ $('#toolGrid').innerHTML = TOOLS.map((t,i) => `
 document.querySelectorAll('.tool').forEach(el =>
   el.addEventListener('click', () => { const t = TOOLS[el.dataset.idx]; openViewer(t.t, t.u, t.c); }));
 
-// Docs rows
-$('#docRows').innerHTML = DOCS.map((d,i) => `
-  <div class="row-item" style="--i:${i}" data-idx="${i}">
-    <div class="row-tile" style="background:${d.c}">${svg(d.i)}</div>
-    <div><b>${d.t}</b><small>${d.d}</small></div>${chev}
-  </div>`).join('');
-$('#docRows').querySelectorAll('.row-item').forEach(el =>
-  el.addEventListener('click', () => { const d = DOCS[el.dataset.idx]; openViewer(d.t, d.u, d.c); }));
+// Docs: folder browser over DOC_TREE. docPath holds the open folders, top level first.
+// The header back arrow steps up one folder; tapping the Docs tab returns to the top.
+const ICON_FOLDER = '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>';
+const ICON_FILE = '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/>';
+const DOCS_INTRO = 'Procedures, methodologies, safety and technical data sheets, forms and checklists.';
+const htmlEsc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const countDocs = n => n.k ? n.k.reduce((s, c) => s + countDocs(c), 0) : 1;
+const docCount = n => { const x = countDocs(n); return x + (x === 1 ? ' document' : ' documents'); };
+let docPath = [];
+
+function renderDocs() {
+  const node = docPath[docPath.length - 1];
+  const items = node ? node.k : DOC_TREE;
+  const colour = docPath.length ? docPath[0].c : null;
+  $('#docTitle').textContent = node ? node.t : 'Documents';
+  $('#docSub').textContent = node
+    ? ['Documents', ...docPath.slice(0, -1).map(n => n.t)].join(' › ') + ' · ' + docCount(node)
+    : DOCS_INTRO;
+  $('#docRows').innerHTML = items.map((n, i) => `
+    <div class="row-item" style="--i:${i}" data-idx="${i}">
+      <div class="row-tile" style="background:${n.c || colour}">${svg(n.k ? ICON_FOLDER : ICON_FILE)}</div>
+      <div><b>${htmlEsc(n.t)}</b><small>${n.k ? (n.d ? htmlEsc(n.d) + ' · ' : '') + docCount(n) : 'PDF'}</small></div>${chev}
+    </div>`).join('');
+  $('#docRows').querySelectorAll('.row-item').forEach(el =>
+    el.addEventListener('click', () => {
+      const n = items[el.dataset.idx];
+      if (n.k) { buzz(); docPath.push(n); renderDocs(); restagger('docs'); }
+      else openViewer(n.t, `https://drive.google.com/file/d/${n.id}/preview`, colour);
+    }));
+  $('#page-docs .page-scroll').scrollTop = 0;
+  if (currentPage === 'docs') {
+    $('#hdrTitle').textContent = node ? node.t : PAGE_TITLES.docs;
+    $('#hdr').classList.toggle('can-back', docPath.length > 0);
+  }
+}
+renderDocs();
 
 // More rows (with Marketing accordion + Contact push)
 $('#moreRows').innerHTML = MORE.map((m,i) => `
