@@ -68,7 +68,7 @@ pulls it either). Edit tools here.
 ## Release checklist (every change that ships)
 
 1. **Bump the cache version** in `sw.js`: `const CACHE = 'nuflow-tech-vN'`
-   (currently `v12`). Without this, installed phones keep serving old files.
+   (currently `v13`). Without this, installed phones keep serving old files.
 2. If a tool is added, renamed or removed, update **both**:
    - the `TOOLS` array in `index.html`
    - the `SHELL` list in `sw.js` (so it's saved for offline use)
@@ -138,6 +138,24 @@ Five tabs: Home, Tools, Docs, Community, More.
   community share the `nuflow.net` domain, so the Circle login cookie is first-party.
   Don't move the app off a `nuflow.net` subdomain.
 - Tapping the Community tab, or "View all" on Home, always resets to the feed.
+
+### Docs tab
+- Mirrors James's shared Google Drive folder **DOCUMENTS**
+  (`https://drive.google.com/drive/folders/1d0s_qA1aUFUZ3Ay06k122bb3DzEd9kSM`).
+  That folder holds shortcuts to four folders: Documents, Processes, Safety Data Sheets
+  and Technical Data Sheets. The "Superseded" folder inside Technical Data Sheets is left
+  out on purpose.
+- The tree lives in the `DOC_TREE` array in `index.html`. Folders have `k` (contents),
+  and files have `id` (the Google Drive file ID). Top-level folders also set `c` (colour)
+  and `d` (description). `.pdf` is dropped from titles, and items are sorted with
+  folders first, then by name.
+- Files open in the in-app viewer as `https://drive.google.com/file/d/<id>/preview`.
+  Drive allows that URL inside an iframe; `/view` doesn't. The files must stay shared
+  as "anyone with the link can view".
+- **It doesn't update by itself.** When files are added to or removed from Drive,
+  `DOC_TREE` must be updated to match. The folder list works offline, but opening a
+  document needs signal.
+- Tapping the Docs tab returns to the top level. The header back arrow goes up one folder.
 
 ### Docs and shop links
 - `shop.nuflow.net` blocks being shown in an iframe. It's listed in
