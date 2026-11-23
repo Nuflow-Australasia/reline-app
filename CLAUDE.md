@@ -68,7 +68,7 @@ pulls it either). Edit tools here.
 ## Release checklist (every change that ships)
 
 1. **Bump the cache version** in `sw.js`: `const CACHE = 'nuflow-tech-vN'`
-   (currently `v13`). Without this, installed phones keep serving old files.
+   (currently `v14`). Without this, installed phones keep serving old files.
 2. If a tool is added, renamed or removed, update **both**:
    - the `TOOLS` array in `index.html`
    - the `SHELL` list in `sw.js` (so it's saved for offline use)
