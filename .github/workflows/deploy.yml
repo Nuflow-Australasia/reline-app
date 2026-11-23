@@ -16,12 +16,12 @@ concurrency:
   group: pages
   cancel-in-progress: true
 
+# Build and deploy are separate jobs (GitHub's standard Pages setup). With both in one
+# job, deploy-pages sometimes looked for the uploaded site before GitHub had registered
+# it and failed with "No artifacts named github-pages were found".
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -46,5 +46,13 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v4
