@@ -20,7 +20,9 @@ Use Australian English in all user-facing text.
   1. copies the repo into `_site/` (excluding `.git`, `.github`, `scripts`, and the
      internal files `README.md`, `CLAUDE.md` and `home` so they aren't public on the site)
   2. runs `scripts/fetch-posts.mjs` to write `_site/posts.json`
-  3. deploys `_site/` to Pages
+  3. uploads `_site/` and deploys it to Pages in a separate `deploy` job. Keep the jobs
+     separate: when they were one job, deploy-pages sometimes failed with "No artifacts
+     named github-pages were found"
 - GitHub pauses scheduled workflows after 60 days with no commits. If Home posts go
   stale, check the Actions tab first.
 - James usually publishes with GitHub Desktop, so keep the repo layout simple and
